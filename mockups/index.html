@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RG Motors · Inventario de bodega</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@450;550;650;750&family=Oswald:wght@500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <section class="login" id="login">
+    <div class="login-card">
+      <img class="login-logo" src="assets/logo.png" alt="RG Motors" />
+      <div class="login-kicker">Bodega · Puerto Montt</div>
+      <h1 class="login-title">INVENTARIO EN VIVO</h1>
+      <p class="login-sub">Control de accesorios, barras y repuestos. Cada salida queda amarrada a una camioneta y su patente.</p>
+      <div class="field">
+        <label>Usuario</label>
+        <input value="carlos.soto" readonly />
+      </div>
+      <div class="field">
+        <label>Contraseña</label>
+        <input type="password" value="bodega2026" readonly />
+      </div>
+      <button class="btn btn-primary" onclick="bootApp()">Entrar a bodega</button>
+      <div class="login-meta">
+        <span>Encargado de inventario</span>
+        <span>Sincronizado con planilla RG</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="shell app-hidden" id="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="assets/logo.png" alt="RG Motors" />
+      </div>
+      <div class="live"><i class="pulse"></i> STOCK EN TIEMPO REAL</div>
+      <nav class="nav">
+        <button class="active" data-view="dashboard" onclick="go('dashboard')">
+          <svg viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+          Panel de control
+        </button>
+        <button data-view="inventory" onclick="go('inventory')">
+          <svg viewBox="0 0 24 24"><path d="M4 8l8-4 8 4-8 4-8-4zM4 8v8l8 4 8-4V8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+          Inventario
+        </button>
+        <button data-view="use" onclick="go('use')">
+          <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          Usar en unidad
+        </button>
+        <button data-view="inbound" onclick="go('inbound')">
+          <svg viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          Ingreso
+        </button>
+        <button data-view="scan" onclick="openScan()">
+          <svg viewBox="0 0 24 24"><path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3M8 8h3v3H8zm5 5h3v3h-3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          Escanear caja
+        </button>
+        <div class="nav-label">Trazabilidad</div>
+        <button data-view="moves" onclick="go('moves')">
+          <svg viewBox="0 0 24 24"><path d="M5 6h14M5 12h14M5 18h9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          Movimientos
+        </button>
+        <button data-view="units" onclick="go('units')">
+          <svg viewBox="0 0 24 24"><path d="M4 15h16l-1.5-5H6L4 15zm2 0v3m12-3v3M7 10l1.2-3h7.6L17 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          Unidades / patentes
+        </button>
+        <button data-view="alerts" onclick="go('alerts')">
+          <svg viewBox="0 0 24 24"><path d="M12 4l9 16H3L12 4zm0 6v4m0 3h.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          Alertas de stock
+        </button>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="avatar">CS</div>
+        <div>
+          <strong>Carlos Soto</strong>
+          <span>Encargado bodega</span>
+        </div>
+      </div>
+    </aside>
+
+    <section class="main">
+      <header class="topbar">
+        <div class="search">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"/><path d="M16 16l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <input id="global-search" placeholder="Buscar SKU, barra, lona, patente o modelo…" />
+        </div>
+        <div class="top-meta">
+          <div class="chip" id="clock">mar. 13:36</div>
+          <div class="chip">Patio · Av. Cardonal</div>
+          <button class="icon-btn" title="Alertas" onclick="go('alerts')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 17h12l-1.2-7a5.8 5.8 0 0 0-11.6 0L6 17zm3 0a3 3 0 0 0 6 0" stroke="#c8ceda" stroke-width="1.7"/></svg>
+            <i class="badge-dot"></i>
+          </button>
+        </div>
+      </header>
+
+      <div class="content">
+        <section class="view active" id="view-dashboard">
+          <div class="page-head">
+            <div>
+              <h1>PANEL DE CONTROL</h1>
+              <p>Bodega viva. Lo que se usa en una patente se descuenta al segundo.</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-danger" onclick="go('use')">Usar elemento</button>
+              <button class="btn btn-ghost" onclick="go('inbound')">Registrar ingreso</button>
+            </div>
+          </div>
+          <div class="kpis">
+            <article class="kpi"><div class="label">SKUs activos</div><div class="value" id="kpi-skus">12</div><div class="hint">Catálogo de bodega</div></article>
+            <article class="kpi ok"><div class="label">Valor en bodega</div><div class="value" id="kpi-value">$0</div><div class="hint">Costo de inventario</div></article>
+            <article class="kpi alert"><div class="label">Críticos / bajos</div><div class="value" id="kpi-low">0</div><div class="hint">Bajo el mínimo operativo</div></article>
+            <article class="kpi"><div class="label">Usos de hoy</div><div class="value" id="kpi-uses">0</div><div class="hint">Salidas con patente</div></article>
+          </div>
+          <div class="grid-2">
+            <article class="card">
+              <h2>Últimos movimientos <span>en vivo</span></h2>
+              <div id="dash-moves"></div>
+            </article>
+            <div>
+              <article class="card" style="margin-bottom:12px">
+                <h2>Stock que pide reposición</h2>
+                <div id="dash-alerts"></div>
+              </article>
+              <article class="card">
+                <h2>Unidades en preparación <span>desde planilla</span></h2>
+                <div id="dash-units"></div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-inventory">
+          <div class="page-head">
+            <div>
+              <h1>INVENTARIO</h1>
+              <p>Todo lo que hay en bodega, con ubicación, mínimo y compatibilidad.</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-soft" onclick="go('use')">Descontar uso</button>
+            </div>
+          </div>
+          <div class="filters" id="inv-filters"></div>
+          <div class="card">
+            <div class="table-head sku">
+              <span>Elemento</span><span>Línea</span><span>Stock</span><span>Compatible</span><span>Estado</span><span></span>
+            </div>
+            <div id="inv-rows"></div>
+          </div>
+        </section>
+
+        <section class="view" id="view-detail">
+          <div class="page-head">
+            <div>
+              <h1>FICHA DE ELEMENTO</h1>
+              <p>Dónde está, cuánto queda y en qué patentes se ha usado.</p>
+            </div>
+            <button class="btn btn-ghost" onclick="go('inventory')">Volver al listado</button>
+          </div>
+          <div class="detail">
+            <aside class="hero-sku" id="detail-card"></aside>
+            <article class="card">
+              <h2>Historial de este SKU <span>cada salida tiene patente</span></h2>
+              <div class="table-head move"><span>Cuándo</span><span>Tipo</span><span>Unidad</span><span>Cant.</span><span>Quién</span></div>
+              <div id="detail-hist"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="view-use">
+          <div class="page-head">
+            <div>
+              <h1>USAR EN UNIDAD</h1>
+              <p>El flujo del encargado: elige el elemento, busca la patente y el stock baja al confirmar.</p>
+            </div>
+          </div>
+          <div class="wizard">
+            <aside class="steps">
+              <div class="step on" onclick="state.wizard.step=1;render()"><b>1. Elemento</b><span>Qué se saca de bodega</span></div>
+              <div class="step" onclick="state.wizard.step=2;render()"><b>2. Patente</b><span>En qué camioneta se usa</span></div>
+              <div class="step" onclick="state.wizard.step=3;render()"><b>3. Confirmar</b><span>Descuento en tiempo real</span></div>
+            </aside>
+            <div>
+              <div id="wiz-pane-1">
+                <div class="field"><label>Buscar en bodega</label><input oninput="state.q=this.value;render()" placeholder="Ej: barras mitsubishi" /></div>
+                <div id="wiz-items"></div>
+                <button class="btn btn-primary" style="width:auto;margin-top:8px" onclick="state.wizard.step=2;render()">Continuar a patente</button>
+              </div>
+              <div id="wiz-pane-2" style="display:none">
+                <div class="field">
+                  <label>Buscar unidad de la planilla (patente, marca o modelo)</label>
+                  <input id="wizard-plate" oninput="state.wizard.plate=this.value;render()" placeholder="Ej: THZF 75 o Mitsubishi Katana" />
+                </div>
+                <div id="wiz-units"></div>
+              </div>
+              <div id="wiz-pane-3" style="display:none">
+                <div id="wiz-confirm"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-inbound">
+          <div class="page-head">
+            <div>
+              <h1>INGRESO A BODEGA</h1>
+              <p>Si la mercadería llega en cajas, el celular lee el código y sube todo el contenido de una vez.</p>
+            </div>
+            <button class="btn btn-primary" style="width:auto" onclick="openScan()">Escanear caja con cámara</button>
+          </div>
+          <div class="grid-2">
+            <article class="card">
+              <h2>Cajas del proveedor <span>código de barras / QR</span></h2>
+              <p class="sku-sub" style="line-height:1.65;margin-bottom:12px">
+                Cada caja tiene un código. Al escanearlo, el sistema abre el packing list:
+                qué SKUs vienen, cuántas unidades, de qué proveedor y con qué guía.
+                El encargado confirma (o marca faltantes) y el inventario se actualiza al instante.
+              </p>
+              <div id="box-list"></div>
+            </article>
+            <article class="card">
+              <h2>Ingreso suelto <span>sin caja</span></h2>
+              <div class="field"><label>Elemento</label><select id="in-sku"></select></div>
+              <div class="field"><label>Cantidad</label><input id="in-qty" type="number" value="4" min="1" /></div>
+              <div class="field"><label>Proveedor</label><input id="in-sup" value="Offroad Puerto Montt" /></div>
+              <div class="field"><label>Guía o factura</label><input id="in-guide" value="00482" /></div>
+              <button class="btn btn-ghost" onclick="receiveStock()">Sumar un SKU</button>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="view-scan">
+          <div class="page-head">
+            <div>
+              <h1>ESCANEAR CAJA</h1>
+              <p>Misma app en el celular del encargado. Apunta al código de la caja y el contenido aparece solo.</p>
+            </div>
+          </div>
+          <div class="phone-stage">
+            <div class="phone">
+              <div class="phone-notch"></div>
+              <header class="phone-bar">
+                <img src="assets/logo.png" alt="" />
+                <span>Bodega · cámara</span>
+              </header>
+
+              <div id="scan-camera">
+                <div class="scanner" onclick="simulateScan()">
+                  <div class="scanner-glow"></div>
+                  <div class="finder">
+                    <i></i><i></i><i></i><i></i>
+                    <em class="laser"></em>
+                  </div>
+                  <div class="barcode-fake">
+                    <b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b>
+                    <span>7804629004821</span>
+                  </div>
+                </div>
+                <div class="phone-pad">
+                  <p class="scan-hint">Apunta al código de barras o QR de la caja. El sistema no adivina el contenido: lo busca por ese código.</p>
+                  <button class="btn btn-primary" onclick="simulateScan()">Leer código con la cámara</button>
+                  <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="go('inbound')">Ingresar a mano</button>
+                </div>
+              </div>
+
+              <div id="scan-found" style="display:none">
+                <div class="phone-pad" style="padding-top:80px;text-align:center">
+                  <div class="pulse" style="margin:0 auto 16px"></div>
+                  <h3 id="scan-code">RG-CAJA-00482</h3>
+                  <p class="sku-sub" id="scan-meta">Offroad Puerto Montt · guía 00482</p>
+                  <p class="sku-sub" style="margin-top:12px">Caja reconocida. Abriendo contenido…</p>
+                </div>
+              </div>
+
+              <div id="scan-contents" style="display:none">
+                <div class="phone-pad">
+                  <div class="sku-sub">Contenido de la caja</div>
+                  <h3 style="margin:4px 0 12px">Revisa y sube al inventario</h3>
+                  <div id="scan-lines"></div>
+                  <div class="after" style="margin:12px 0">Al confirmar, cada línea se suma al stock en tiempo real. Si falta o viene dañado, márcalo antes.</div>
+                  <button class="btn btn-primary" onclick="confirmBox()">Subir caja al inventario</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-moves">
+          <div class="page-head">
+            <div>
+              <h1>MOVIMIENTOS</h1>
+              <p>Auditoría completa: entradas, salidas, responsable y patente.</p>
+            </div>
+            <select id="move-filter" class="filter" onchange="render()" style="background:#121722;padding:8px 12px;border-radius:10px">
+              <option value="todos">Todos</option>
+              <option value="uso">Solo usos en unidad</option>
+              <option value="ingreso">Solo ingresos</option>
+            </select>
+          </div>
+          <article class="card">
+            <div class="table-head move"><span>Cuándo</span><span>Detalle</span><span>Unidad / origen</span><span>Tipo</span><span>Cant.</span></div>
+            <div id="move-rows"></div>
+          </article>
+        </section>
+
+        <section class="view" id="view-units">
+          <div class="page-head">
+            <div>
+              <h1>UNIDADES DEL PATIO</h1>
+              <p>Las mismas camionetas de la hoja de inventario. Aquí se ve qué se les instaló.</p>
+            </div>
+          </div>
+          <article class="card">
+            <div class="table-head unit"><span>Patente</span><span>Unidad</span><span>Estado</span><span>Usos</span><span>Origen</span><span></span></div>
+            <div id="unit-rows"></div>
+          </article>
+        </section>
+
+        <section class="view" id="view-unit">
+          <div class="page-head">
+            <div>
+              <h1>FICHA DE UNIDAD</h1>
+              <p>Todo lo descontado de bodega para esta patente.</p>
+            </div>
+            <button class="btn btn-ghost" onclick="go('units')">Todas las unidades</button>
+          </div>
+          <div class="detail">
+            <aside class="hero-sku" id="unit-hero"></aside>
+            <article class="card">
+              <h2>Línea de tiempo de bodega</h2>
+              <div class="timeline" id="unit-tl"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="view-alerts">
+          <div class="page-head">
+            <div>
+              <h1>ALERTAS</h1>
+              <p>Lo que no puede faltar para preparar camionetas esta semana.</p>
+            </div>
+          </div>
+          <article class="card" id="alert-list"></article>
+        </section>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>

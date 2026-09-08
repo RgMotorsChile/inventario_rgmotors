@@ -1,0 +1,26 @@
+.DS_Store
+.env
+.env.local
+*.iml
+.idea/
+.vscode/
+
+# Flutter
+rg_inventario/.dart_tool/
+rg_inventario/.flutter-plugins
+rg_inventario/.flutter-plugins-dependencies
+rg_inventario/.packages
+rg_inventario/build/
+rg_inventario/.pub-cache/
+rg_inventario/.pub/
+rg_inventario/coverage/
+
+# Next
+web/node_modules/
+web/.next/
+web/out/
+web/.env
+web/.env.local
+
+# OS
+Thumbs.db
