@@ -1,0 +1,13 @@
+[auth]
+require_email_verification = false
+verify_email_method = "code"
+reset_password_method = "code"
+disable_signup = false
+allowed_redirect_urls = ["http://localhost:3000", "http://localhost:3000/login", "http://localhost:8080"]
+
+[auth.password]
+min_length = 6
+require_number = false
+require_lowercase = false
+require_uppercase = false
+require_special_char = false

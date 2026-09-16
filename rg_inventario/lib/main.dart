@@ -1,24 +1,29 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:insforge_flutter/insforge_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'config.dart';
 import 'screens/access_gate.dart';
 import 'screens/login_screen.dart';
+import 'services/web_http.dart';
 import 'state/inventory_store.dart';
 import 'theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  GoogleFonts.config.allowRuntimeFetching = !kIsWeb;
   await initializeDateFormatting('es');
 
   if (AppConfig.isConfigured) {
-    await Supabase.initialize(
-      url: AppConfig.supabaseUrl,
-      publishableKey: AppConfig.supabaseAnonKey,
+    await Insforge.initialize(
+      url: AppConfig.insforgeUrl,
+      anonKey: AppConfig.insforgeAnonKey,
     );
+    silenceBrowserForbiddenHeaders();
   }
 
   runApp(const RgInventarioApp());
@@ -29,8 +34,8 @@ class RgInventarioApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'RG Motors Inventario',
+    final app = MaterialApp(
+      title: 'Inventario RG',
       debugShowCheckedModeBanner: false,
       theme: buildRgTheme(),
       locale: const Locale('es'),
@@ -42,6 +47,13 @@ class RgInventarioApp extends StatelessWidget {
       ],
       home: AppConfig.isConfigured ? const AuthGate() : const SetupScreen(),
     );
+
+    if (!AppConfig.isConfigured) return app;
+
+    return ChangeNotifierProvider(
+      create: (_) => InventoryStore(Insforge.instance),
+      child: app,
+    );
   }
 }
 
@@ -51,15 +63,41 @@ class AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<AuthState>(
-      stream: Supabase.instance.client.auth.onAuthStateChange,
+      stream: Insforge.instance.auth.onAuthStateChange,
       builder: (context, snapshot) {
-        final session = Supabase.instance.client.auth.currentSession;
-        if (session == null) return const LoginScreen();
-        return ChangeNotifierProvider(
-          create: (_) => InventoryStore(Supabase.instance.client)..start(),
-          child: const RoleShell(),
-        );
+        final user = Insforge.instance.auth.currentUser;
+        if (user == null) return const LoginScreen();
+        return _AuthenticatedScope(userId: user.id);
       },
     );
   }
+}
+
+class _AuthenticatedScope extends StatefulWidget {
+  const _AuthenticatedScope({required this.userId});
+  final String userId;
+
+  @override
+  State<_AuthenticatedScope> createState() => _AuthenticatedScopeState();
+}
+
+class _AuthenticatedScopeState extends State<_AuthenticatedScope> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<InventoryStore>().start();
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant _AuthenticatedScope oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.userId != widget.userId) {
+      context.read<InventoryStore>().start();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => const RoleShell();
 }

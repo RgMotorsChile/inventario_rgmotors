@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/insforge/client";
 
 type Item = { sku: string; name: string };
 
@@ -17,7 +17,7 @@ export function CreateBoxForm({ items }: { items: Item[] }) {
     setBusy(true);
     setError(null);
     const data = new FormData(event.currentTarget);
-    const { error: rpcError } = await createClient().rpc("create_box", {
+    const { error: rpcError } = await createClient().database.rpc("create_box", {
       p_code: String(data.get("code")),
       p_barcode: String(data.get("barcode")),
       p_supplier: String(data.get("supplier")),

@@ -5,10 +5,10 @@ import { when } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function MovimientosPage() {
-  const { supabase, profile } = await requireManagement();
+  const { db, profile } = await requireManagement();
   const [{ data: movements }, { data: items }] = await Promise.all([
-    supabase.from("movements").select("*").order("created_at", { ascending: false }).limit(400),
-    supabase.from("items").select("sku,name"),
+    db.from("movements").select("*").order("created_at", { ascending: false }).limit(400),
+    db.from("items").select("sku,name"),
   ]);
   const nameOf = (sku: string) => items?.find((i) => i.sku === sku)?.name ?? sku;
 

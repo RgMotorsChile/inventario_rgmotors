@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/insforge/client";
 
 export function RpcForm({
   fn,
@@ -33,7 +33,7 @@ export function RpcForm({
       else if (field.type === "checkbox") params[field.name] = data.get(field.name) === "on";
       else params[field.name] = raw === "" ? null : raw;
     }
-    const { data: result, error: rpcError } = await createClient().rpc(fn, params);
+    const { data: result, error: rpcError } = await createClient().database.rpc(fn, params);
     setBusy(false);
     if (rpcError) {
       setError(rpcError.message);

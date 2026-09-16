@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:insforge_flutter/insforge_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config.dart';
 import '../services/errors.dart';
@@ -31,36 +32,55 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  Future<void> _claimIfNeeded(String? code, String? fullName) async {
+    final client = Insforge.instance;
+    final pending = (code ?? '').trim().toUpperCase();
+    if (pending.length >= 6) {
+      await client.database.rpc('claim_invite', args: {
+        'p_code': pending,
+        'p_full_name': (fullName ?? '').trim().isEmpty ? 'Encargado bodega' : fullName!.trim(),
+      }).execute();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('pending_invite');
+      return;
+    }
+    await client.database.rpc('ensure_profile', args: {
+      'p_full_name': (fullName ?? '').trim().isEmpty ? null : fullName!.trim(),
+    }).execute();
+  }
+
   Future<void> _submit() async {
     setState(() {
       busy = true;
       error = null;
     });
     try {
-      final auth = Supabase.instance.client.auth;
+      final auth = Insforge.instance.auth;
       if (register) {
         if (invite.text.trim().length < 6) {
           throw Exception('Pide a jefatura un código de invitación.');
         }
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('pending_invite', invite.text.trim().toUpperCase());
         final result = await auth.signUp(
           email: email.text.trim(),
           password: password.text,
-          data: {
-            'full_name': name.text.trim().isEmpty ? 'Encargado bodega' : name.text.trim(),
-            'invite_code': invite.text.trim().toUpperCase(),
-          },
+          name: name.text.trim().isEmpty ? 'Encargado bodega' : name.text.trim(),
         );
-        if (result.session == null) {
+        if (!result.hasSession) {
           setState(() => error = 'Cuenta creada. Si pide confirmar correo, revísalo y luego entra.');
+          return;
         }
+        await _claimIfNeeded(invite.text, name.text);
       } else {
-        await auth.signInWithPassword(
+        await auth.signIn(
           email: email.text.trim(),
           password: password.text,
         );
+        final prefs = await SharedPreferences.getInstance();
+        final pending = prefs.getString('pending_invite');
+        await _claimIfNeeded(pending, name.text);
       }
-    } on AuthException catch (e) {
-      setState(() => error = friendlyError(e));
     } catch (e) {
       setState(() => error = friendlyError(e));
     } finally {
@@ -196,12 +216,12 @@ class SetupScreen extends StatelessWidget {
               const RgLogo(height: 64),
               const SizedBox(height: 24),
               const SectionTitle(
-                'CONECTAR SUPABASE',
-                subtitle: 'Corre supabase/schema.sql, crea el primer usuario de jefatura en el dashboard y lanza la app con las claves.',
+                'CONECTAR INSFORGE',
+                subtitle: 'Corre insforge/schema.sql, crea el primer usuario de jefatura en el dashboard y lanza la app con las claves.',
               ),
               const SizedBox(height: 12),
               const Text(
-                'flutter run --dart-define=SUPABASE_URL=https://xxx.supabase.co --dart-define=SUPABASE_ANON_KEY=eyJ...',
+                'flutter run --dart-define=INSFORGE_URL=https://xxx.insforge.app --dart-define=INSFORGE_ANON_KEY=...',
                 style: TextStyle(color: RgColors.brandLight, height: 1.5),
               ),
               const SizedBox(height: 16),

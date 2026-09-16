@@ -1,19 +1,19 @@
 class AppConfig {
-  static const supabaseUrl = String.fromEnvironment(
-    'SUPABASE_URL',
+  static const insforgeUrl = String.fromEnvironment(
+    'INSFORGE_URL',
     defaultValue: '',
   );
 
-  static const supabaseAnonKey = String.fromEnvironment(
-    'SUPABASE_ANON_KEY',
+  static const insforgeAnonKey = String.fromEnvironment(
+    'INSFORGE_ANON_KEY',
     defaultValue: '',
   );
 
   static const jefaturaWebUrl = String.fromEnvironment(
     'JEFATURA_WEB_URL',
-    defaultValue: 'https://inventario-rgmotors.vercel.app',
+    defaultValue: 'http://localhost:3000',
   );
 
   static bool get isConfigured =>
-      supabaseUrl.startsWith('https://') && supabaseAnonKey.length > 20;
+      insforgeUrl.startsWith('https://') && insforgeAnonKey.length > 10;
 }

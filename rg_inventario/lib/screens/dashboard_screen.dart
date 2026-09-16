@@ -5,9 +5,8 @@ import '../state/inventory_store.dart';
 import '../theme.dart';
 import '../widgets/widgets.dart';
 import 'alerts_screen.dart';
-import 'scan_box_screen.dart';
 import 'units_screen.dart';
-import 'use_item_screen.dart';
+import 'assign_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -52,20 +51,10 @@ class DashboardScreen extends StatelessWidget {
                   style: TextStyle(color: RgColors.yellow, height: 1.4),
                 ),
               ),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                FilledButton(
-                  style: FilledButton.styleFrom(backgroundColor: RgColors.red),
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UseItemScreen())),
-                  child: const Text('Usar elemento'),
-                ),
-                OutlinedButton(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScanBoxScreen())),
-                  child: const Text('Escanear caja'),
-                ),
-              ],
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: RgColors.red),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AssignScreen())),
+              child: const Text('Usar elemento'),
             ),
             const SizedBox(height: 12),
             if (store.loading && store.items.isEmpty)

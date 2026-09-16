@@ -6,11 +6,11 @@ import { when } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function CajasPage() {
-  const { supabase, profile } = await requireManagement();
+  const { db, profile } = await requireManagement();
   const [{ data: boxes }, { data: lines }, { data: items }] = await Promise.all([
-    supabase.from("boxes").select("*").order("created_at", { ascending: false }),
-    supabase.from("box_lines").select("*"),
-    supabase.from("items").select("sku,name").order("name"),
+    db.from("boxes").select("*").order("created_at", { ascending: false }),
+    db.from("box_lines").select("*"),
+    db.from("items").select("sku,name").order("name"),
   ]);
 
   return (

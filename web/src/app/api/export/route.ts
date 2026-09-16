@@ -9,14 +9,14 @@ function stamp() {
 }
 
 export async function GET() {
-  const { supabase } = await requireManagement();
+  const { db } = await requireManagement();
   const [{ data: items }, { data: movements }, { data: assignments }, { data: workers }, { data: vehicles }] =
     await Promise.all([
-      supabase.from("items").select("*").order("name"),
-      supabase.from("movements").select("*").order("created_at", { ascending: false }).limit(2000),
-      supabase.from("assignments").select("*"),
-      supabase.from("workers").select("*"),
-      supabase.from("vehicles").select("*"),
+      db.from("items").select("*").order("name"),
+      db.from("movements").select("*").order("created_at", { ascending: false }).limit(2000),
+      db.from("assignments").select("*"),
+      db.from("workers").select("*"),
+      db.from("vehicles").select("*"),
     ]);
 
   const book = new ExcelJS.Workbook();

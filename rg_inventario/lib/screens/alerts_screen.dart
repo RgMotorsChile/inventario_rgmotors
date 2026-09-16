@@ -25,7 +25,7 @@ class AlertsScreen extends StatelessWidget {
                     trailing: StatusPill(status: item.status, label: item.statusLabel),
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const InboundScreen()),
+                      MaterialPageRoute(builder: (_) => InboundScreen(initialSku: item.sku)),
                     ),
                   ),
                 );

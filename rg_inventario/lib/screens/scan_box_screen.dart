@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -22,7 +22,7 @@ class _ScanBoxScreenState extends State<ScanBoxScreen> {
   final manual = TextEditingController();
   WarehouseBox? box;
   final skipped = <String>{};
-  File? evidence;
+  Uint8List? evidence;
   bool busy = false;
   String? error;
 
@@ -65,7 +65,7 @@ class _ScanBoxScreenState extends State<ScanBoxScreen> {
       await context.read<InventoryStore>().receiveBox(
             code: current.code,
             skipped: skipped.toList(),
-            evidence: evidence,
+            evidenceBytes: evidence,
           );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -190,7 +190,9 @@ class _ScanBoxScreenState extends State<ScanBoxScreen> {
                     imageQuality: 70,
                   );
                   if (shot == null) return;
-                  setState(() => evidence = File(shot.path));
+                  final bytes = await shot.readAsBytes();
+                  if (!mounted) return;
+                  setState(() => evidence = bytes);
                 },
           icon: const Icon(Icons.photo_camera_outlined),
           label: Text(evidence == null ? 'Foto de evidencia (faltantes / daños)' : 'Foto lista'),

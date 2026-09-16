@@ -5,28 +5,55 @@ import '../models/models.dart';
 import '../state/inventory_store.dart';
 import '../theme.dart';
 import '../widgets/widgets.dart';
-import 'use_item_screen.dart';
+import 'assign_screen.dart';
 
-class UnitsScreen extends StatelessWidget {
+class UnitsScreen extends StatefulWidget {
   const UnitsScreen({super.key});
+
+  @override
+  State<UnitsScreen> createState() => _UnitsScreenState();
+}
+
+class _UnitsScreenState extends State<UnitsScreen> {
+  String query = '';
 
   @override
   Widget build(BuildContext context) {
     final store = context.watch<InventoryStore>();
-    return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.all(16),
+    final q = query.toLowerCase();
+    final units = store.vehicles.where((v) {
+      return '${v.plate} ${v.brand} ${v.model} ${v.status}'.toLowerCase().contains(q);
+    }).toList();
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Unidades')),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
         children: [
           const SectionTitle(
             'UNIDADES DEL PATIO',
-            subtitle: 'Las camionetas de la planilla. Aquí se ve qué se les instaló.',
+            subtitle: 'Las camionetas del stock. Aquí se ve qué se les instaló.',
           ),
-          ...store.vehicles.map((v) {
+          TextField(
+            decoration: const InputDecoration(
+              prefixIcon: Icon(Icons.search),
+              hintText: 'Patente, Hilux, Partner…',
+            ),
+            onChanged: (value) => setState(() => query = value),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${units.length} de ${store.vehicles.length}',
+            style: const TextStyle(color: RgColors.muted, fontSize: 13),
+          ),
+          const SizedBox(height: 8),
+          ...units.map((v) {
             final used = store.movementsForPlate(v.plate).where((m) => m.isUse).length;
             return Card(
               child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 leading: PlateChip(plate: v.plate),
-                title: Text(v.title),
+                title: Text(v.title, maxLines: 1, overflow: TextOverflow.ellipsis),
                 subtitle: Text('${v.year} · ${v.color} · ${v.status} · $used ítems'),
                 onTap: () => Navigator.push(
                   context,
@@ -65,9 +92,10 @@ class UnitDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Ficha de unidad')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               PlateChip(plate: unit.plate),
               const SizedBox(width: 12),
@@ -83,16 +111,16 @@ class UnitDetailScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _row('Origen', 'Hoja inventario RG Motors'),
-          _row('Ubicación', 'Puerto Montt · patio'),
+          _row('Estado', unit.status),
+          _row('Color', unit.color),
           _row('Elementos usados', '${hist.length}'),
           _row('Costo accesorios', clp.format(cost)),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: RgColors.red),
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => UseItemScreen(initialPlate: unit.plate)),
+              MaterialPageRoute(builder: (_) => AssignScreen(initialPlate: unit.plate)),
             ),
             child: const Text('Registrar uso en esta patente'),
           ),
@@ -120,7 +148,7 @@ class UnitDetailScreen extends StatelessWidget {
       child: Row(
         children: [
           Expanded(child: Text(k, style: const TextStyle(color: RgColors.muted))),
-          Text(v, style: const TextStyle(fontWeight: FontWeight.w700)),
+          Flexible(child: Text(v, textAlign: TextAlign.right, style: const TextStyle(fontWeight: FontWeight.w700))),
         ],
       ),
     );

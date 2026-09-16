@@ -21,6 +21,24 @@ web/.next/
 web/out/
 web/.env
 web/.env.local
+web/.vercel/
+web/tsconfig.tsbuildinfo
+rg_inventario/.dart_defines.json
 
 # OS
 Thumbs.db
+
+# InsForge & AI agent skills
+.insforge
+.agent
+.agents
+.augment
+.claude
+.cline
+.github/copilot*
+.kilocode
+.qoder
+.qwen
+.roo
+.trae
+.windsurf

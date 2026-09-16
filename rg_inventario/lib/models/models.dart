@@ -160,6 +160,7 @@ class StockMovement {
     this.workerId,
     this.workerName,
     this.note,
+    this.outcome,
     required this.userName,
     required this.createdAt,
   });
@@ -172,17 +173,37 @@ class StockMovement {
   final String? workerId;
   final String? workerName;
   final String? note;
+  final String? outcome;
   final String userName;
   final DateTime createdAt;
 
   bool get isUse => type == 'uso';
   bool get isAssign => type == 'asignacion';
   bool get isReturn => type == 'devolucion';
+  bool get isDamage => type == 'dano' || outcome == 'danado' || outcome == 'extraviado';
+
+  String get outcomeLabel {
+    switch (outcome) {
+      case 'instalado':
+        return 'Instalado';
+      case 'usado':
+        return 'Usado';
+      case 'danado':
+        return 'Dañado';
+      case 'extraviado':
+        return 'Extraviado';
+      default:
+        return type;
+    }
+  }
 
   String get destination {
-    if (isUse) return plate == null ? 'Unidad' : 'Unidad $plate';
-    if (isAssign) return 'Trabajador ${workerName ?? ''}';
-    if (isReturn) return 'Devolución ${workerName ?? ''}';
+    final who = workerName == null || workerName!.isEmpty ? '' : workerName!;
+    final unit = plate == null || plate!.isEmpty ? '' : plate!;
+    if (isDamage) return [outcomeLabel, who, unit].where((s) => s.isNotEmpty).join(' · ');
+    if (isUse) return [if (unit.isNotEmpty) 'Unidad $unit', who].where((s) => s.isNotEmpty).join(' · ');
+    if (isAssign) return 'Trabajador $who';
+    if (isReturn) return 'Devolución $who';
     return note ?? 'Ingreso a bodega';
   }
 
@@ -196,6 +217,7 @@ class StockMovement {
       workerId: map['worker_id'] as String?,
       workerName: map['worker_name'] as String?,
       note: map['note'] as String?,
+      outcome: map['outcome'] as String?,
       userName: map['user_name'] as String? ?? 'Bodega',
       createdAt: DateTime.parse(map['created_at'] as String).toLocal(),
     );

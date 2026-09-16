@@ -64,13 +64,16 @@ class TrackingScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 ...store.workers.map((w) {
                   final open = store.assignmentsForWorker(w.id);
+                  final used = store.movementsForWorker(w.id);
                   final qty = open.fold<int>(0, (s, a) => s + a.qty);
                   return Card(
                     child: ListTile(
                       title: Text(w.fullName),
                       subtitle: Text(
                         open.isEmpty
-                            ? '${w.jobTitle} · sin elementos a cargo'
+                            ? used.isEmpty
+                                ? '${w.jobTitle} · sin movimientos'
+                                : '${w.jobTitle} · ${used.length} movimientos'
                             : '${w.jobTitle} · $qty u. a cargo · ${open.map((a) => itemName(store.items, a.itemSku)).join(', ')}',
                       ),
                       trailing: qty == 0 ? null : StatusPill(status: 'low', label: '$qty a cargo'),

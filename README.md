@@ -6,17 +6,17 @@ Sistema de bodega para la automotora: cada salida queda atada a una **patente** 
 | --- | --- |
 | `rg_inventario/` | App móvil del encargado de bodega |
 | `web/` | Panel web de jefatura (métricas, rastro, Excel, catálogo, invitaciones) |
-| `supabase/` | SQL para que armes la base |
+| `insforge/` | SQL para que armes la base en InsForge |
 
 Repositorio: [inventario_rgmotors](https://github.com/MathiasAlejandr0/inventario_rgmotors).
 
 ## Qué hace cada vista
 
 **Bodega (celular)**  
-Entrar con código de invitación. Usar pieza en una camioneta, asignar a un trabajador, escanear caja, foto de evidencia, ingreso suelto. Si no hay red, ve el último stock guardado.
+Vista principal: lista de todo el inventario, búsqueda y botón para sumar (foto + nombre + cantidad). El resto (salidas, trabajadores) está en Más.
 
 **Jefatura (web)**  
-Login solo si el perfil es `jefatura` y está activo. Métricas, alertas, rastro vehículo/trabajador, Excel de 6 hojas, alta de SKUs, patentes, trabajadores, cajas y códigos de acceso.
+Login solo si el perfil es `jefatura` y está activo. Métricas, alertas, rastro vehículo/trabajador, Excel, alta de SKUs, patentes, trabajadores y códigos de acceso.
 
 ## Seguridad
 
@@ -27,12 +27,12 @@ Login solo si el perfil es `jefatura` y está activo. Métricas, alertas, rastro
 
 ## Cómo levantarlo
 
-1. Crea el proyecto en Supabase y corre `supabase/schema.sql` (tú haces la base).
-2. Activa el primer usuario de jefatura (ver `supabase/README.md`).
+1. Crea el proyecto en [InsForge](https://insforge.dev) y corre `insforge/schema.sql`.
+2. Activa el primer usuario de jefatura (ver `insforge/README.md`).
 3. Web: `cd web && cp .env.example .env.local && npm i && npm run dev`
 4. App:
 
 ```bash
 cd rg_inventario
-flutter run --dart-define=SUPABASE_URL=https://xxx.supabase.co --dart-define=SUPABASE_ANON_KEY=eyJ... --dart-define=JEFATURA_WEB_URL=http://localhost:3000
+flutter run --dart-define=INSFORGE_URL=https://xxx.insforge.app --dart-define=INSFORGE_ANON_KEY=... --dart-define=JEFATURA_WEB_URL=http://localhost:3000
 ```

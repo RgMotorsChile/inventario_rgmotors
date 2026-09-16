@@ -6,13 +6,13 @@ import { clp } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function CatalogoPage() {
-  const { supabase, profile } = await requireManagement();
-  const { data: items } = await supabase.from("items").select("*").order("name");
+  const { db, profile } = await requireManagement();
+  const { data: items } = await db.from("items").select("*").order("name");
 
   return (
     <Shell path="/catalogo" name={profile.full_name}>
       <h1>Catálogo</h1>
-      <p className="lead">Alta y edición de SKUs. El stock operativo lo mueve bodega; aquí se corrige con ajuste.</p>
+      <p className="lead">Alta de elementos. Usa una categoría ya creada (Barras, Maxus…). Bodega los ve en su lista.</p>
       <div className="card">
         <h2>Nuevo / actualizar SKU</h2>
         <RpcForm

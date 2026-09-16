@@ -1,5 +1,9 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createAuthActions } from "@insforge/sdk/ssr";
+import { cookies } from "next/headers";
+import { createClient } from "@/lib/insforge/server";
+import { userIdFromAccessToken } from "@/lib/token";
 
 export type Profile = {
   id: string;
@@ -8,18 +12,23 @@ export type Profile = {
   active: boolean;
 };
 
-export async function requireManagement() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+export const requireManagement = cache(async () => {
+  const jar = await cookies();
+  const insforge = await createClient();
+  const fromToken = userIdFromAccessToken(jar.get("insforge_access_token")?.value);
+  const userId = fromToken ?? (await insforge.auth.getCurrentUser()).data?.user?.id;
+  if (!userId) redirect("/login");
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+  const { data: profile } = await insforge.database
+    .from("profiles")
+    .select("id, full_name, role, active")
+    .eq("id", userId)
+    .maybeSingle();
   const row = profile as Profile | null;
   if (!row?.active || !["jefatura", "admin"].includes(row.role)) {
-    await supabase.auth.signOut();
+    const auth = createAuthActions({ cookies: jar });
+    await auth.signOut();
     redirect("/login?error=forbidden");
   }
-  return { supabase, user, profile: row };
-}
+  return { insforge, db: insforge.database, user: { id: userId }, profile: row };
+});

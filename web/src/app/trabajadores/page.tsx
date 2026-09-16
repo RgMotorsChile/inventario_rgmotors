@@ -5,8 +5,8 @@ import { requireManagement } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 
 export default async function TrabajadoresPage() {
-  const { supabase, profile } = await requireManagement();
-  const { data: workers } = await supabase.from("workers").select("*").order("full_name");
+  const { db, profile } = await requireManagement();
+  const { data: workers } = await db.from("workers").select("*").order("full_name");
 
   return (
     <Shell path="/trabajadores" name={profile.full_name}>
