@@ -8,7 +8,8 @@ Sistema de bodega para la automotora: cada salida queda atada a una **patente** 
 | `web/` | Panel web de jefatura (métricas, rastro, Excel, catálogo, invitaciones) |
 | `insforge/` | SQL para que armes la base en InsForge |
 
-Repositorio: [inventario_rgmotors](https://github.com/MathiasAlejandr0/inventario_rgmotors).
+Repositorio: [RgMotorsChile/inventario_rgmotors](https://github.com/RgMotorsChile/inventario_rgmotors).  
+Panel: [inventario-rg.vercel.app](https://inventario-rg.vercel.app)
 
 ## Qué hace cada vista
 
@@ -34,5 +35,5 @@ Login solo si el perfil es `jefatura` y está activo. Métricas, alertas, rastro
 
 ```bash
 cd rg_inventario
-flutter run --dart-define=INSFORGE_URL=https://xxx.insforge.app --dart-define=INSFORGE_ANON_KEY=... --dart-define=JEFATURA_WEB_URL=http://localhost:3000
+flutter run --dart-define=INSFORGE_URL=https://xxx.insforge.app --dart-define=INSFORGE_ANON_KEY=... --dart-define=JEFATURA_WEB_URL=https://inventario-rg.vercel.app
 ```
