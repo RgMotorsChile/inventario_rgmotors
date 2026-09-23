@@ -1,5 +1,7 @@
+import { EvidenceThumbs } from "@/components/evidence-thumbs";
 import { PageHead } from "@/components/page-head";
 import { requireManagement } from "@/lib/auth";
+import { loadReceivePhotos, signEvidencePaths } from "@/lib/evidence";
 import { plateNorm, when } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +34,17 @@ export default async function HistorialPage() {
   const history = movements ?? [];
   const delivered = history.filter((m) => ["uso", "dano", "asignacion"].includes(m.type));
 
+  const receivePhotos = await loadReceivePhotos(history.map((m) => m.id));
+  const signed = await signEvidencePaths(receivePhotos.map((p) => p.storage_path));
+  const photosByMovement = new Map<string, string[]>();
+  for (const p of receivePhotos) {
+    if (!p.movement_id) continue;
+    const url = signed.get(p.storage_path);
+    if (!url) continue;
+    const list = photosByMovement.get(p.movement_id) ?? [];
+    list.push(url);
+    photosByMovement.set(p.movement_id, list);
+  }
   return (
     <>
       <PageHead
@@ -41,6 +54,7 @@ export default async function HistorialPage() {
       />
       <div className="card">
         <h2>Por vehículo</h2>
+        <div className="table-wrap">
         <table>
           <thead>
             <tr>
@@ -68,9 +82,11 @@ export default async function HistorialPage() {
             })}
           </tbody>
         </table>
+        </div>
       </div>
       <div className="card">
         <h2>Por responsable</h2>
+        <div className="table-wrap">
         <table>
           <thead>
             <tr>
@@ -94,9 +110,11 @@ export default async function HistorialPage() {
             })}
           </tbody>
         </table>
+        </div>
       </div>
       <div className="card">
         <h2>Movimientos</h2>
+        <div className="table-wrap">
         <table>
           <thead>
             <tr>
@@ -105,6 +123,7 @@ export default async function HistorialPage() {
               <th>Elemento</th>
               <th>Responsable / patente</th>
               <th>Registró</th>
+              <th>Evidencia</th>
             </tr>
           </thead>
           <tbody>
@@ -117,10 +136,14 @@ export default async function HistorialPage() {
                 </td>
                 <td>{m.plate ?? m.worker_name ?? m.note ?? "—"}</td>
                 <td>{m.user_name}</td>
+                <td>
+                  <EvidenceThumbs urls={photosByMovement.get(m.id) ?? []} />
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </>
   );

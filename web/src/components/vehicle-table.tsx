@@ -93,50 +93,84 @@ export function VehicleTable({
       <p className="muted">
         {visible.length} de {vehicles.length} unidades
       </p>
-      <table>
-        <thead>
-          <tr>
-            <th>Patente</th>
-            <th>Unidad</th>
-            <th>Año</th>
-            <th>Color</th>
-            <th>Estado</th>
-            {deliveries ? <th>Entregas</th> : null}
-          </tr>
-        </thead>
-        <tbody>
-          {visible.map((v) => {
-            const rows = deliveries?.[plateNorm(v.plate)] ?? [];
-            return (
-              <tr key={v.id}>
-                <td>{v.plate}</td>
-                <td>
-                  {v.brand} {v.model}
-                </td>
-                <td>{v.year}</td>
-                <td>{v.color}</td>
-                <td>{v.status}</td>
-                {deliveries ? (
+      <div className="table-wrap desktop-only">
+        <table>
+          <thead>
+            <tr>
+              <th>Patente</th>
+              <th>Unidad</th>
+              <th>Año</th>
+              <th>Color</th>
+              <th>Estado</th>
+              {deliveries ? <th>Entregas</th> : null}
+            </tr>
+          </thead>
+          <tbody>
+            {visible.map((v) => {
+              const rows = deliveries?.[plateNorm(v.plate)] ?? [];
+              return (
+                <tr key={v.id}>
+                  <td>{v.plate}</td>
                   <td>
-                    {rows.length === 0 ? (
-                      "Sin entregas"
-                    ) : (
-                      <div className="table-actions" style={{ justifyContent: "flex-start" }}>
-                        <span className="muted">
-                          {rows.length} {rows.length === 1 ? "entrega" : "entregas"}
-                        </span>
-                        <button className="btn small" type="button" onClick={() => setOpen(v)}>
-                          Informe
-                        </button>
-                      </div>
-                    )}
+                    {v.brand} {v.model}
                   </td>
-                ) : null}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                  <td>{v.year}</td>
+                  <td>{v.color}</td>
+                  <td>{v.status}</td>
+                  {deliveries ? (
+                    <td>
+                      {rows.length === 0 ? (
+                        "Sin entregas"
+                      ) : (
+                        <div className="table-actions" style={{ justifyContent: "flex-start" }}>
+                          <span className="muted">
+                            {rows.length} {rows.length === 1 ? "entrega" : "entregas"}
+                          </span>
+                          <button className="btn small" type="button" onClick={() => setOpen(v)}>
+                            Informe
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  ) : null}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <div className="item-list mobile-only">
+        {visible.map((v) => {
+          const rows = deliveries?.[plateNorm(v.plate)] ?? [];
+          return (
+            <article className="item-card" key={v.id}>
+              <div className="item-card-top">
+                <strong>{v.plate}</strong>
+                <span className="pill">{v.status}</span>
+              </div>
+              <p className="muted">
+                {v.brand} {v.model} · {v.year} · {v.color}
+              </p>
+              {deliveries ? (
+                <div className="item-card-meta">
+                  {rows.length === 0 ? (
+                    <span>Sin entregas</span>
+                  ) : (
+                    <>
+                      <span>
+                        {rows.length} {rows.length === 1 ? "entrega" : "entregas"}
+                      </span>
+                      <button className="btn small" type="button" onClick={() => setOpen(v)}>
+                        Informe
+                      </button>
+                    </>
+                  )}
+                </div>
+              ) : null}
+            </article>
+          );
+        })}
+      </div>
 
       {open ? (
         <div className="dialog-back" onClick={() => setOpen(null)}>

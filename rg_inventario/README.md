@@ -1,12 +1,13 @@
-# App móvil · encargado de bodega
+# Inventario RG Motors (Flutter)
 
-Jefatura no entra aquí: usa `../web`.
+Auth + Storage: **Supabase**. Stock/RPC: panel web (`/api/bodega/*`, `/api/rpc`).
 
 ```bash
-flutter pub get
-flutter run --dart-define=INSFORGE_URL=https://TU-PROYECTO.insforge.app --dart-define=INSFORGE_ANON_KEY=TU_ANON_KEY --dart-define=JEFATURA_WEB_URL=https://tu-web.vercel.app
+flutter run \
+  --dart-define=SUPABASE_ANON_KEY=eyJ... \
+  --dart-define=JEFATURA_WEB_URL=https://tu-panel-inventario
 ```
 
-El primer acceso pide un **código de invitación** generado en la web (Equipo).
+Opcional: `SUPABASE_URL`, `BODEGA_API_URL` (si difiere de la web de jefatura).
 
-Para ingresar mercadería: pestaña **Ingreso** → foto del elemento → elegir el nombre de la lista → cantidad.
+Crear jefatura una vez: `npm run create-admin` en `web/`.

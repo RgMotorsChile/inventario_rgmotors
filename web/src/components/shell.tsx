@@ -36,8 +36,8 @@ export function Shell({
           <BrandLogo priority />
           <div className="side-user">
             <p className="eyebrow">Jefatura</p>
-            <strong>{name}</strong>
-            <div className="muted">Puerto Montt · Av. Cardonal</div>
+            <strong className="side-name">{name}</strong>
+            <div className="muted side-place">Puerto Montt · Av. Cardonal</div>
           </div>
         </div>
         <nav>

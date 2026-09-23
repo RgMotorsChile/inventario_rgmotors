@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:insforge_flutter/insforge_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config.dart';
 import '../services/errors.dart';
+import '../services/session.dart';
 import '../theme.dart';
 import '../widgets/widgets.dart';
 
@@ -20,8 +21,25 @@ class _LoginScreenState extends State<LoginScreen> {
   final name = TextEditingController();
   final invite = TextEditingController();
   bool register = false;
+  bool remember = true;
   bool busy = false;
   String? error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRemembered();
+  }
+
+  Future<void> _loadRemembered() async {
+    final saved = await rememberedEmail();
+    final keep = await wantsRememberSession();
+    if (!mounted) return;
+    setState(() {
+      remember = keep;
+      if (saved != null && saved.isNotEmpty) email.text = saved;
+    });
+  }
 
   @override
   void dispose() {
@@ -33,20 +51,21 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _claimIfNeeded(String? code, String? fullName) async {
-    final client = Insforge.instance;
+    final client = Supabase.instance.client;
     final pending = (code ?? '').trim().toUpperCase();
+    final display = (fullName ?? '').trim().isEmpty ? 'Encargado bodega' : fullName!.trim();
     if (pending.length >= 6) {
-      await client.database.rpc('claim_invite', args: {
+      await client.rpc('claim_invite', params: {
         'p_code': pending,
-        'p_full_name': (fullName ?? '').trim().isEmpty ? 'Encargado bodega' : fullName!.trim(),
-      }).execute();
+        'p_full_name': display,
+      });
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('pending_invite');
       return;
     }
-    await client.database.rpc('ensure_profile', args: {
+    await client.rpc('ensure_profile', params: {
       'p_full_name': (fullName ?? '').trim().isEmpty ? null : fullName!.trim(),
-    }).execute();
+    });
   }
 
   Future<void> _submit() async {
@@ -55,36 +74,40 @@ class _LoginScreenState extends State<LoginScreen> {
       error = null;
     });
     try {
-      final auth = Insforge.instance.auth;
-      if (register) {
-        if (invite.text.trim().length < 6) {
-          throw Exception('Pide a jefatura un código de invitación.');
-        }
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('pending_invite', invite.text.trim().toUpperCase());
-        final result = await auth.signUp(
-          email: email.text.trim(),
-          password: password.text,
-          name: name.text.trim().isEmpty ? 'Encargado bodega' : name.text.trim(),
-        );
-        if (!result.hasSession) {
-          setState(() => error = 'Cuenta creada. Si pide confirmar correo, revísalo y luego entra.');
-          return;
-        }
-        await _claimIfNeeded(invite.text, name.text);
-      } else {
-        await auth.signIn(
-          email: email.text.trim(),
-          password: password.text,
-        );
-        final prefs = await SharedPreferences.getInstance();
-        final pending = prefs.getString('pending_invite');
-        await _claimIfNeeded(pending, name.text);
-      }
+      await saveSessionPreference(remember: remember, email: email.text);
+      await _submitSupabase();
     } catch (e) {
       setState(() => error = friendlyError(e));
     } finally {
       if (mounted) setState(() => busy = false);
+    }
+  }
+
+  Future<void> _submitSupabase() async {
+    final auth = Supabase.instance.client.auth;
+    final mail = email.text.trim();
+    final pass = password.text;
+    if (register) {
+      if (invite.text.trim().length < 6) {
+        throw Exception('Pide a jefatura un código de invitación.');
+      }
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('pending_invite', invite.text.trim().toUpperCase());
+      final result = await auth.signUp(
+        email: mail,
+        password: pass,
+        data: {'full_name': name.text.trim().isEmpty ? 'Encargado bodega' : name.text.trim()},
+      );
+      if (result.session == null) {
+        setState(() => error = 'Cuenta creada. Si pide confirmar correo, revísalo y luego entra.');
+        return;
+      }
+      await _claimIfNeeded(invite.text, name.text);
+    } else {
+      await auth.signInWithPassword(email: mail, password: pass);
+      final prefs = await SharedPreferences.getInstance();
+      final pending = prefs.getString('pending_invite');
+      await _claimIfNeeded(pending, name.text);
     }
   }
 
@@ -121,70 +144,67 @@ class _LoginScreenState extends State<LoginScreen> {
                           'BODEGA · PUERTO MONTT',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: RgColors.muted,
-                            fontSize: 11,
-                            letterSpacing: 2.2,
+                            letterSpacing: 2.4,
+                            fontSize: 12,
                             fontWeight: FontWeight.w700,
+                            color: RgColors.muted,
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'APP DEL ENCARGADO',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
+                        const SizedBox(height: 20),
+                        Text(
+                          register ? 'Crear acceso' : 'Entrar',
+                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
                         ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Solo personal de bodega. Jefatura entra por la web. El primer acceso necesita código de invitación.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: RgColors.muted, height: 1.45),
-                        ),
-                        const SizedBox(height: 22),
-                        if (register)
+                        const SizedBox(height: 16),
+                        if (register) ...[
                           TextField(
                             controller: name,
-                            textCapitalization: TextCapitalization.words,
                             decoration: const InputDecoration(labelText: 'Nombre'),
                           ),
-                        if (register) const SizedBox(height: 12),
-                        if (register)
+                          const SizedBox(height: 10),
                           TextField(
                             controller: invite,
                             textCapitalization: TextCapitalization.characters,
-                            decoration: const InputDecoration(
-                              labelText: 'Código de invitación',
-                              hintText: 'Lo entrega jefatura',
-                            ),
+                            decoration: const InputDecoration(labelText: 'Código de invitación'),
                           ),
-                        if (register) const SizedBox(height: 12),
+                          const SizedBox(height: 10),
+                        ],
                         TextField(
                           controller: email,
                           keyboardType: TextInputType.emailAddress,
                           decoration: const InputDecoration(labelText: 'Correo'),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 10),
                         TextField(
                           controller: password,
                           obscureText: true,
                           decoration: const InputDecoration(labelText: 'Contraseña'),
                         ),
+                        const SizedBox(height: 8),
+                        SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text('Recordarme en este equipo'),
+                          value: remember,
+                          onChanged: busy ? null : (v) => setState(() => remember = v),
+                        ),
                         if (error != null) ...[
-                          const SizedBox(height: 12),
-                          Text(error!, style: const TextStyle(color: RgColors.red, fontSize: 13)),
+                          const SizedBox(height: 8),
+                          Text(error!, style: const TextStyle(color: Color(0xFFFF8A80))),
                         ],
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
                         FilledButton(
                           onPressed: busy ? null : _submit,
-                          child: Text(busy
-                              ? 'Entrando…'
-                              : register
-                                  ? 'Activar con código'
-                                  : 'Entrar a bodega'),
+                          child: Text(busy ? '…' : (register ? 'Crear cuenta' : 'Entrar')),
                         ),
                         TextButton(
-                          onPressed: () => setState(() => register = !register),
+                          onPressed: busy
+                              ? null
+                              : () => setState(() {
+                                    register = !register;
+                                    error = null;
+                                  }),
                           child: Text(
-                            register ? 'Ya tengo cuenta' : 'Primera vez: tengo código',
+                            register ? 'Ya tengo cuenta' : 'Tengo un código de invitación',
                             style: const TextStyle(color: RgColors.brandLight),
                           ),
                         ),
@@ -216,18 +236,14 @@ class SetupScreen extends StatelessWidget {
               const RgLogo(height: 64),
               const SizedBox(height: 24),
               const SectionTitle(
-                'CONECTAR INSFORGE',
-                subtitle: 'Corre insforge/schema.sql, crea el primer usuario de jefatura en el dashboard y lanza la app con las claves.',
+                'CONECTAR SUPABASE',
+                subtitle:
+                    'Crea jefatura con create-inv-admin.mjs en el panel web y lanza la app con SUPABASE_ANON_KEY + JEFATURA_WEB_URL.',
               ),
               const SizedBox(height: 12),
               const Text(
-                'flutter run --dart-define=INSFORGE_URL=https://xxx.insforge.app --dart-define=INSFORGE_ANON_KEY=...',
+                'flutter run --dart-define=SUPABASE_ANON_KEY=... --dart-define=JEFATURA_WEB_URL=https://...',
                 style: TextStyle(color: RgColors.brandLight, height: 1.5),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Esta app es solo para el encargado de bodega. Jefatura usa la versión web.',
-                style: TextStyle(color: RgColors.muted, height: 1.5),
               ),
             ],
           ),

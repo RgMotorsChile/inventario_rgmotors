@@ -26,10 +26,12 @@ Future<void> exportManagementExcel(InventoryStore store) async {
   final dir = await getTemporaryDirectory();
   final file = File('${dir.path}/RG_Inventario_$stamp.xlsx');
   await file.writeAsBytes(bytes, flush: true);
-  await Share.shareXFiles(
-    [XFile(file.path)],
-    subject: 'RG Motors · inventario completo',
-    text: 'Stock, alertas, asignaciones a trabajadores y usos por patente.',
+  await SharePlus.instance.share(
+    ShareParams(
+      files: [XFile(file.path)],
+      subject: 'RG Motors · inventario completo',
+      text: 'Stock, alertas, asignaciones a trabajadores y usos por patente.',
+    ),
   );
 }
 

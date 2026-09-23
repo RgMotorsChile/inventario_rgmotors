@@ -6,10 +6,11 @@ import { when } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function EquipoPage() {
-  const { db, profile } = await requireManagement();
+  const { db, authDb, profile } = await requireManagement();
+  const profilesDb = authDb ?? db;
   const [{ data: invites }, { data: users }] = await Promise.all([
     db.from("invites").select("*").order("created_at", { ascending: false }),
-    db.from("profiles").select("*").order("created_at", { ascending: false }),
+    profilesDb.from("profiles").select("*").order("created_at", { ascending: false }),
   ]);
 
   return (
@@ -17,7 +18,7 @@ export default async function EquipoPage() {
       <h1>Equipo y seguridad</h1>
       <p className="lead">
         Nadie se crea como jefatura solo. Genera un código, dáselo al encargado y él lo usa en la app. El primer usuario
-        de jefatura se activa a mano en InsForge.
+        de jefatura se crea con <code>npm run create-admin</code>.
       </p>
       <div className="card">
         <h2>Invitar</h2>

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/insforge/client";
+import { callRpc } from "@/lib/call-rpc";
 import type { WorkerRow } from "@/lib/types";
 
 type Dialog =
@@ -33,7 +33,7 @@ export function WorkerDesk({ workers }: { workers: WorkerRow[] }) {
     setError(null);
     setOk(null);
     const data = new FormData(event.currentTarget);
-    const { error: rpcError } = await createClient().database.rpc("upsert_worker", {
+    const { error: rpcError } = await callRpc("upsert_worker", {
       p_id: dialog.worker.id,
       p_full_name: String(data.get("full_name") ?? "").trim(),
       p_job_title: String(data.get("job_title") ?? "").trim(),
@@ -54,10 +54,9 @@ export function WorkerDesk({ workers }: { workers: WorkerRow[] }) {
     setBusy(true);
     setError(null);
     setOk(null);
-    const db = createClient().database;
-    const { data, error: rpcError } = await db.rpc("delete_worker", { p_id: dialog.worker.id });
+    const { data, error: rpcError } = await callRpc("delete_worker", { p_id: dialog.worker.id });
     if (rpcError) {
-      const { error: fallbackError } = await db.rpc("upsert_worker", {
+      const { error: fallbackError } = await callRpc("upsert_worker", {
         p_id: dialog.worker.id,
         p_full_name: dialog.worker.full_name,
         p_job_title: dialog.worker.job_title,

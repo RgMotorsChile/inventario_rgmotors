@@ -1,11 +1,7 @@
-# Base de datos InsForge
+# Archivo histórico — InsForge
 
-1. Crea el proyecto en [insforge.dev](https://insforge.dev).
-2. SQL Editor (o migración CLI) → ejecuta `schema.sql`.
-3. Opcional para demo: ejecuta `seed.sql`.
-4. Auth → Users → crea el usuario de jefatura.
-5. Corre `activar_jefatura.sql` con su UUID.
-6. Storage → crea el bucket privado `box-evidence`.
-7. Copia Project URL y anon key a `web/.env.local` y a los `--dart-define` de Flutter.
+El inventario y el catálogo viven en **Supabase** (`tuybpizjeszgwtcvunmp`).
 
-Desde la web de jefatura (Equipo) generas códigos para bodega.
+Esta carpeta conserva SQL/scripts del backend anterior. No desplegar ni enlazar apps nuevas a InsForge.
+
+Ver: `docs/SUPABASE-CUTOVER.md` y `../rgmotors/docs/SUPABASE-MULTITENANT.md`.

@@ -52,7 +52,7 @@ export default async function AtencionPage() {
         </a>
       </div>
       <div className="card">
-        <p className="muted" style={{ marginTop: 0 }}>
+        <p className="muted">
           {lastSync?.synced_at
             ? `Patentes RG MOTORS leídas ${formatChileTime(lastSync.synced_at)}.`
             : "Aún no hay lectura automática de patentes."}
@@ -61,6 +61,7 @@ export default async function AtencionPage() {
       {low.length > 0 ? (
         <div className="card">
           <h2>Stock bajo</h2>
+          <div className="table-wrap">
           <table>
             <thead>
               <tr>
@@ -86,6 +87,7 @@ export default async function AtencionPage() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       ) : null}
       <LiveMoves initial={(movements ?? []) as MovementRow[]} />

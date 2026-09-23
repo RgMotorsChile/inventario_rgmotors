@@ -2,8 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { createClient } from "@/lib/insforge/client";
-
 export function RpcForm({
   fn,
   fields,
@@ -33,12 +31,18 @@ export function RpcForm({
       else if (field.type === "checkbox") params[field.name] = data.get(field.name) === "on";
       else params[field.name] = raw === "" ? null : raw;
     }
-    const { data: result, error: rpcError } = await createClient().database.rpc(fn, params);
+    const res = await fetch("/api/rpc", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fn, params }),
+    });
+    const json = (await res.json()) as { data?: unknown; error?: string };
     setBusy(false);
-    if (rpcError) {
-      setError(rpcError.message);
+    if (!res.ok || json.error) {
+      setError(json.error ?? "Error al guardar");
       return;
     }
+    const result = json.data;
     setOk(typeof result === "string" ? `Código: ${result}` : "Guardado");
     event.currentTarget.reset();
     router.refresh();

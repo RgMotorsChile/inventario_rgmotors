@@ -9,11 +9,12 @@ function read(rel: string) {
 }
 
 describe("secretos y superficie pública", () => {
-  it("el frontend web no embebe una API key ik_", () => {
+  it("el frontend web no embebe secrets de servicio", () => {
     const envExample = read("web/.env.example");
-    expect(envExample).not.toMatch(/\bik_[A-Za-z0-9]/);
-    expect(envExample).toMatch(/NEXT_PUBLIC_INSFORGE_ANON_KEY/);
-    expect(envExample).not.toMatch(/INSFORGE_API_KEY|SERVICE_ROLE/);
+    expect(envExample).not.toMatch(/\bik_[A-Za-z0-9]+/);
+    expect(envExample).toMatch(/NEXT_PUBLIC_SUPABASE_ANON_KEY/);
+    expect(envExample).toMatch(/SUPABASE_SERVICE_ROLE_KEY=/);
+    expect(envExample).not.toMatch(/eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]+\./);
   });
 
   it("el export Excel exige requireManagement", () => {

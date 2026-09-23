@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { createClient } from "@/lib/insforge/client";
 
 export function SyncVehiclesButton() {
   const router = useRouter();
@@ -14,21 +13,26 @@ export function SyncVehiclesButton() {
     setBusy(true);
     setError(null);
     setOk(null);
-    const { data, error: invokeError } = await createClient().functions.invoke("sync-rg-motors-vehicles", {
-      method: "POST",
-    });
-    setBusy(false);
-    if (invokeError) {
-      setError(invokeError.message);
-      return;
+    try {
+      const res = await fetch("/api/bodega/sync-vehicles", { method: "POST" });
+      const payload = (await res.json()) as {
+        error?: string;
+        read?: number;
+        result?: { inserted?: number; updated?: number };
+      };
+      if (!res.ok || payload.error) {
+        setError(payload.error ?? "No se pudo sincronizar");
+        return;
+      }
+      setOk(
+        `Leídas ${payload.read ?? 0} patentes. Nuevas: ${payload.result?.inserted ?? 0}. Actualizadas: ${payload.result?.updated ?? 0}.`,
+      );
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error de red");
+    } finally {
+      setBusy(false);
     }
-    const payload = data as { error?: string; read?: number; result?: { inserted?: number; updated?: number } };
-    if (payload?.error) {
-      setError(payload.error);
-      return;
-    }
-    setOk(`Leídas ${payload?.read ?? 0} patentes. Nuevas: ${payload?.result?.inserted ?? 0}.`);
-    router.refresh();
   }
 
   return (

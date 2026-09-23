@@ -8,11 +8,12 @@ import type { WorkerRow } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 export default async function PersonasPage() {
-  const { db } = await requireManagement();
+  const { db, authDb } = await requireManagement();
+  const profilesDb = authDb ?? db;
   const [{ data: workers }, { data: invites }, { data: users }] = await Promise.all([
     db.from("workers").select("*").order("full_name"),
     db.from("invites").select("*").order("created_at", { ascending: false }),
-    db.from("profiles").select("*").order("created_at", { ascending: false }),
+    profilesDb.from("profiles").select("*").order("created_at", { ascending: false }),
   ]);
 
   return (

@@ -1,8 +1,45 @@
-import { type NextRequest } from "next/server";
-import { updateInsforgeSession } from "@/lib/insforge/middleware";
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
+import { isPublicPath } from "@/lib/token";
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/client";
+
+async function updateSupabaseSession(request: NextRequest) {
+  let response = NextResponse.next({ request });
+  const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
+        for (const { name, value } of cookiesToSet) {
+          request.cookies.set(name, value);
+        }
+        response = NextResponse.next({ request });
+        for (const { name, value, options } of cookiesToSet) {
+          response.cookies.set(name, value, options);
+        }
+      },
+    },
+  });
+
+  const { data } = await supabase.auth.getUser();
+  const path = request.nextUrl.pathname;
+  const isPublic = isPublicPath(path);
+
+  if (!data.user && !isPublic) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  return response;
+}
 
 export async function middleware(request: NextRequest) {
-  return updateInsforgeSession(request);
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    return NextResponse.next({ request });
+  }
+  return updateSupabaseSession(request);
 }
 
 export const config = {

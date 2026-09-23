@@ -8,10 +8,12 @@
     "start": "next start",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:stress": "node scripts/stress.mjs"
+    "test:stress": "node scripts/stress.mjs",
+    "create-admin": "node scripts/create-inv-admin.mjs"
   },
   "dependencies": {
-    "@insforge/sdk": "^1.5.2",
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.117.0",
     "exceljs": "^4.4.0",
     "next": "^15.3.3",
     "react": "^19.1.0",

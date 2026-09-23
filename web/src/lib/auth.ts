@@ -1,9 +1,9 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
-import { createAuthActions } from "@insforge/sdk/ssr";
-import { cookies } from "next/headers";
-import { createClient } from "@/lib/insforge/server";
-import { userIdFromAccessToken } from "@/lib/token";
+import { tenantDb, type InventoryDb } from "@/lib/db";
+import { useSupabaseAuth } from "@/lib/auth-mode";
+import { createSupabaseServer } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/client";
 
 export type Profile = {
   id: string;
@@ -12,23 +12,53 @@ export type Profile = {
   active: boolean;
 };
 
-export const requireManagement = cache(async () => {
-  const jar = await cookies();
-  const insforge = await createClient();
-  const fromToken = userIdFromAccessToken(jar.get("insforge_access_token")?.value);
-  const userId = fromToken ?? (await insforge.auth.getCurrentUser()).data?.user?.id;
-  if (!userId) redirect("/login");
-
-  const { data: profile } = await insforge.database
+async function loadProfileSupabase(userId: string): Promise<Profile | null> {
+  const sb = createServerSupabase();
+  const { data } = await sb
     .from("profiles")
     .select("id, full_name, role, active")
     .eq("id", userId)
     .maybeSingle();
-  const row = profile as Profile | null;
+  return (data as Profile | null) ?? null;
+}
+
+export const requireManagement = cache(async () => {
+  if (!useSupabaseAuth()) {
+    redirect("/login?error=auth");
+  }
+
+  const sb = await createSupabaseServer();
+  const { data: authData } = await sb.auth.getUser();
+  const userId = authData.user?.id;
+  if (!userId) redirect("/login");
+
+  const row = await loadProfileSupabase(userId);
   if (!row?.active || !["jefatura", "admin"].includes(row.role)) {
-    const auth = createAuthActions({ cookies: jar });
-    await auth.signOut();
+    await sb.auth.signOut();
     redirect("/login?error=forbidden");
   }
-  return { insforge, db: insforge.database, user: { id: userId }, profile: row };
+
+  const db = tenantDb();
+  const authDb = {
+    from(table: string) {
+      return createServerSupabase().from(table) as unknown as ReturnType<
+        InventoryDb["from"]
+      >;
+    },
+    rpc(fn: string, params?: Record<string, unknown>) {
+      return createServerSupabase().rpc(fn, params ?? {});
+    },
+    raw: createServerSupabase(),
+    tenantId: db.tenantId,
+    tenantSlug: db.tenantSlug,
+  } satisfies InventoryDb;
+
+  return {
+    db,
+    authDb,
+    user: { id: userId },
+    profile: row,
+    inventoryBackend: "supabase" as const,
+    authBackend: "supabase" as const,
+  };
 });

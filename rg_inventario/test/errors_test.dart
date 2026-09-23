@@ -8,7 +8,7 @@ void main() {
   });
 
   test('traduce corte de red', () {
-    expect(friendlyError(Exception('Failed host lookup: mnbxih89')), contains('Sin conexión'));
+    expect(friendlyError(Exception('Failed host lookup: example')), contains('Sin conexión'));
   });
 
   test('saca el prefijo Exception de Postgres', () {
@@ -17,6 +17,6 @@ void main() {
 
   test('sin dart-defines la app no se considera configurada', () {
     expect(AppConfig.isConfigured, isFalse);
-    expect(AppConfig.insforgeUrl, isEmpty);
+    expect(AppConfig.supabaseAnonKey, isEmpty);
   });
 }

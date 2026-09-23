@@ -2,14 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:insforge_flutter/insforge_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'config.dart';
 import 'screens/access_gate.dart';
 import 'screens/login_screen.dart';
-import 'services/web_http.dart';
 import 'state/inventory_store.dart';
 import 'theme.dart';
 
@@ -18,12 +17,12 @@ Future<void> main() async {
   GoogleFonts.config.allowRuntimeFetching = !kIsWeb;
   await initializeDateFormatting('es');
 
-  if (AppConfig.isConfigured) {
-    await Insforge.initialize(
-      url: AppConfig.insforgeUrl,
-      anonKey: AppConfig.insforgeAnonKey,
+  if (AppConfig.useSupabaseAuth) {
+    await Supabase.initialize(
+      url: AppConfig.supabaseUrl,
+      // ignore: deprecated_member_use — publishableKey aún no estable en todos los targets
+      anonKey: AppConfig.supabaseAnonKey,
     );
-    silenceBrowserForbiddenHeaders();
   }
 
   runApp(const RgInventarioApp());
@@ -51,7 +50,7 @@ class RgInventarioApp extends StatelessWidget {
     if (!AppConfig.isConfigured) return app;
 
     return ChangeNotifierProvider(
-      create: (_) => InventoryStore(Insforge.instance),
+      create: (_) => InventoryStore(),
       child: app,
     );
   }
@@ -63,9 +62,9 @@ class AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<AuthState>(
-      stream: Insforge.instance.auth.onAuthStateChange,
+      stream: Supabase.instance.client.auth.onAuthStateChange,
       builder: (context, snapshot) {
-        final user = Insforge.instance.auth.currentUser;
+        final user = Supabase.instance.client.auth.currentUser;
         if (user == null) return const LoginScreen();
         return _AuthenticatedScope(userId: user.id);
       },

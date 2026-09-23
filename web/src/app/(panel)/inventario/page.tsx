@@ -67,6 +67,7 @@ export default async function InventarioPage() {
         />
       </div>
       <div className="card">
+        <div className="table-wrap">
         <table>
           <thead>
             <tr>
@@ -89,6 +90,7 @@ export default async function InventarioPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </>
   );

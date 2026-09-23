@@ -12,11 +12,11 @@ export default async function LoginPage({
     <main className="auth">
       <div className="card auth-card">
         <BrandLogo className="logo-auth" priority />
-        <p className="eyebrow" style={{ marginTop: 18 }}>
-          Panel
-        </p>
+        <p className="eyebrow">RG Motors · Puerto Montt</p>
         <h1>Jefatura</h1>
-        <p className="lead">Métricas, rastro de piezas y Excel. El encargado de bodega usa la app del celular.</p>
+        <p className="lead">
+          Acceso reservado a la dirección. Inventario, patio y personal de la automotora, en un solo panel.
+        </p>
         <LoginForm initialError={error} />
       </div>
     </main>

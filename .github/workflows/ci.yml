@@ -26,8 +26,9 @@ jobs:
       run:
         working-directory: web
     env:
-      NEXT_PUBLIC_INSFORGE_URL: https://example.insforge.app
-      NEXT_PUBLIC_INSFORGE_ANON_KEY: example-anon-key-placeholder-1234567890
+      NEXT_PUBLIC_SUPABASE_URL: https://tuybpizjeszgwtcvunmp.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.placeholder
+      SUPABASE_SERVICE_ROLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.placeholder
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
