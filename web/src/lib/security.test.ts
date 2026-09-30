@@ -17,6 +17,14 @@ describe("secretos y superficie pública", () => {
     expect(envExample).not.toMatch(/eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]+\./);
   });
 
+  it("el cliente de servidor no cae a la anon key", () => {
+    const src = read("web/src/lib/supabase/client.ts");
+    expect(src).toContain("Falta SUPABASE_SERVICE_ROLE_KEY");
+    expect(src).not.toMatch(
+      /SUPABASE_SERVICE_ROLE_KEY\?\.trim\(\)\s*\|\|\s*SUPABASE_ANON_KEY/,
+    );
+  });
+
   it("el export Excel exige requireManagement", () => {
     const src = read("web/src/app/api/export/route.ts");
     expect(src).toContain("requireManagement");

@@ -46,10 +46,7 @@ export function useSupabaseInventory(): boolean {
   if (process.env.USE_SUPABASE_INVENTORY?.trim() === "0") return false;
   return (
     isSupabaseConfigured() &&
-    Boolean(
-      process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    )
+    Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY?.trim())
   );
 }
 
@@ -57,7 +54,7 @@ export function useSupabaseInventory(): boolean {
 export function tenantDb(tenantId: string = RG_MOTORS_TENANT_ID) {
   if (!useSupabaseInventory()) {
     throw new Error(
-      "Inventario Supabase no configurado. Define SUPABASE_* y USE_SUPABASE_INVENTORY≠0.",
+      "Inventario Supabase no configurado. Define NEXT_PUBLIC_SUPABASE_* y SUPABASE_SERVICE_ROLE_KEY (USE_SUPABASE_INVENTORY≠0).",
     );
   }
   const sb = createServerSupabase();
