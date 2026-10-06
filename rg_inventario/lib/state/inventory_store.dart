@@ -327,6 +327,19 @@ class InventoryStore extends ChangeNotifier {
     await refresh();
   }
 
+  Future<void> correctDeliveryPlate({
+    required String movementId,
+    required String plate,
+    String? note,
+  }) async {
+    await _rpc('correct_delivery_plate', {
+      'p_movement_id': movementId,
+      'p_plate': plate,
+      'p_note': note,
+    });
+    await refresh();
+  }
+
   Future<void> deliverItem({
     required String sku,
     required int qty,

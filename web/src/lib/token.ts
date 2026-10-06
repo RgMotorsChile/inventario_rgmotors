@@ -19,3 +19,8 @@ export function isPublicPath(path: string) {
     path === "/sw.js"
   );
 }
+
+/** Las APIs autentican solas (cookie o Bearer). El middleware no las manda a /login. */
+export function isApiPath(path: string) {
+  return path === "/api" || path.startsWith("/api/");
+}

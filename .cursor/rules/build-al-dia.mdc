@@ -1,0 +1,16 @@
+---
+description: Builds con versiones estables y compatibles con todos los servicios
+alwaysApply: true
+---
+
+# Builds estables y compatibles
+
+Cuando el usuario pida un build (APK, web o deploy):
+
+1. Actualizar solo a versiones **estables que funcionen con todo el stack**: InsForge (`insforge_flutter` / `@insforge/sdk`), Flutter/Next actuales del repo, y el resto de plugins entre sí.
+2. No subir a un major solo porque pub.dev o npm lo muestren como Latest. Si rompe login, storage, fotos, sesión o el build, quedarse en la última que sí es compatible.
+3. Prohibido `dependency_overrides` para forzar un paquete nuevo contra InsForge u otro servicio.
+4. Comprobar: resolve, analyze/tests, y el build real. Recién entonces entregar el artefacto.
+5. Si queda un aviso de “hay una más nueva”, decir por qué no se usó (conflicto con qué servicio).
+
+No commitear `.dart_defines.json`, `.env.local` ni claves.

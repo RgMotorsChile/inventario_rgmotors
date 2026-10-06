@@ -1,3 +1,4 @@
+import { CorrectPlateButton } from "@/components/correct-plate-button";
 import { Shell } from "@/components/shell";
 import { requireManagement } from "@/lib/auth";
 import { when } from "@/lib/format";
@@ -35,7 +36,16 @@ export default async function MovimientosPage() {
                 <td>{m.type}</td>
                 <td>{nameOf(m.item_sku)}</td>
                 <td>{m.qty}</td>
-                <td>{m.plate ?? m.worker_name ?? m.note ?? "—"}</td>
+                <td>
+                  {m.plate ?? m.worker_name ?? m.note ?? "—"}
+                  <CorrectPlateButton
+                    movementId={m.id}
+                    currentPlate={m.plate}
+                    createdAt={m.created_at}
+                    type={m.type}
+                    itemLabel={nameOf(m.item_sku)}
+                  />
+                </td>
                 <td>{m.user_name}</td>
               </tr>
             ))}

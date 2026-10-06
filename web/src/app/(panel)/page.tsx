@@ -54,7 +54,7 @@ export default async function AtencionPage() {
       <div className="card">
         <p className="muted">
           {lastSync?.synced_at
-            ? `Patentes RG MOTORS leídas ${formatChileTime(lastSync.synced_at)}.`
+            ? `Patentes de RG MOTORS, Unidades Chile y Salgado leídas ${formatChileTime(lastSync.synced_at)}.`
             : "Aún no hay lectura automática de patentes."}
         </p>
       </div>

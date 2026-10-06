@@ -33,6 +33,11 @@ const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const email = (process.env.INV_ADMIN_EMAIL || "").trim().toLowerCase();
 const password = process.env.INV_ADMIN_PASSWORD || "";
 const fullName = process.env.INV_ADMIN_NAME?.trim() || "Jefatura RG Motors";
+const mustChange = process.env.INV_MUST_CHANGE_PASSWORD === "1";
+const role = ["bodega", "jefatura", "admin"].includes(process.env.INV_ADMIN_ROLE)
+  ? process.env.INV_ADMIN_ROLE
+  : "jefatura";
+const userMetadata = { full_name: fullName, must_change_password: mustChange };
 
 if (!url || !key) {
   console.error("Falta NEXT_PUBLIC_SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY");
@@ -60,7 +65,7 @@ if (!userId) {
     email,
     password,
     email_confirm: true,
-    user_metadata: { full_name: fullName },
+    user_metadata: userMetadata,
   });
   if (error) {
     console.error("createUser:", error.message);
@@ -72,7 +77,7 @@ if (!userId) {
   const { error } = await sb.auth.admin.updateUserById(userId, {
     password,
     email_confirm: true,
-    user_metadata: { full_name: fullName },
+    user_metadata: userMetadata,
   });
   if (error) {
     console.error("updateUser:", error.message);
@@ -86,7 +91,7 @@ const { error: pErr } = await sb.from("profiles").upsert(
     id: userId,
     tenant_id: TENANT,
     full_name: fullName,
-    role: "jefatura",
+    role,
     active: true,
     updated_at: new Date().toISOString(),
   },
@@ -101,7 +106,7 @@ const { error: mErr } = await sb.from("tenant_members").upsert(
   {
     tenant_id: TENANT,
     user_id: userId,
-    role: "jefatura",
+    role,
     active: true,
   },
   { onConflict: "tenant_id,user_id" },

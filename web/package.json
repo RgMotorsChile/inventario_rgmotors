@@ -9,7 +9,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:stress": "node scripts/stress.mjs",
-    "create-admin": "node scripts/create-inv-admin.mjs"
+    "create-admin": "node scripts/create-inv-admin.mjs",
+    "publish-apk": "node scripts/publish-apk.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",

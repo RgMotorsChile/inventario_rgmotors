@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
-import { requireManagement } from "@/lib/auth";
+import { requireManagementApi } from "@/lib/auth";
 
 export async function GET(req: Request) {
-  const { db } = await requireManagement();
+  const session = await requireManagementApi();
+  if (!session.ok) return session.response;
+  const { db } = session;
   const url = new URL(req.url);
   const kind = url.searchParams.get("kind") ?? "items";
 

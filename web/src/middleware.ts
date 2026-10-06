@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { isPublicPath } from "@/lib/token";
+import { isApiPath, isPublicPath } from "@/lib/token";
+import { mustChangePassword } from "@/lib/login-id";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/client";
 
 async function updateSupabaseSession(request: NextRequest) {
@@ -26,9 +27,16 @@ async function updateSupabaseSession(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isPublic = isPublicPath(path);
 
-  if (!data.user && !isPublic) {
+  if (!data.user && !isPublic && !isApiPath(path)) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  const forceChange = mustChangePassword(data.user?.user_metadata as Record<string, unknown> | undefined);
+  if (data.user && forceChange && path !== "/cambiar-clave" && !isApiPath(path)) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/cambiar-clave";
     return NextResponse.redirect(url);
   }
 

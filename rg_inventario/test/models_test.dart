@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rg_inventario/models/models.dart';
+import 'package:rg_inventario/services/app_version.dart';
 
 StockItem item({int stock = 4, int min = 2, double cost = 1000}) {
   return StockItem(
@@ -80,5 +81,47 @@ void main() {
       'status': 'Disponible',
     });
     expect(unit.title, 'Toyota Hilux');
+  });
+
+  test('entrega a unidad se puede corregir las primeras 24 horas', () {
+    final now = DateTime(2026, 9, 23, 12);
+    final recent = StockMovement.fromMap({
+      'id': 'm1',
+      'type': 'uso',
+      'item_sku': 'BAR-HILUX',
+      'qty': 1,
+      'plate': 'THZF 75',
+      'created_at': now.subtract(const Duration(hours: 6)).toIso8601String(),
+    });
+    final old = StockMovement.fromMap({
+      'id': 'm2',
+      'type': 'uso',
+      'item_sku': 'BAR-HILUX',
+      'qty': 1,
+      'plate': 'THLV 62',
+      'created_at': now.subtract(const Duration(hours: 25)).toIso8601String(),
+    });
+    expect(recent.canCorrectPlate(now), isTrue);
+    expect(old.canCorrectPlate(now), isFalse);
+  });
+
+  test('busca patente pegada o con espacio', () {
+    const unit = VehicleUnit(
+      id: '1',
+      plate: 'RZVL 18',
+      brand: 'Mitsubishi',
+      model: 'L200',
+      year: 2022,
+      color: 'Rojo',
+      status: 'Disponible',
+    );
+    expect(unit.matchesQuery('rzvl18'), isTrue);
+    expect(unit.matchesQuery('RZVL-18'), isTrue);
+    expect(unit.matchesQuery('hilux'), isFalse);
+  });
+
+  test('una APK nueva se detecta por build', () {
+    expect(isNewerAppRelease(3, 4), isTrue);
+    expect(isNewerAppRelease(4, 4), isFalse);
   });
 }

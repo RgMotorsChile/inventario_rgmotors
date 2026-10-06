@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../state/inventory_store.dart';
 import '../theme.dart';
+import '../widgets/correct_plate.dart';
 import '../widgets/widgets.dart';
 import 'assign_screen.dart';
 
@@ -21,9 +22,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
   Widget build(BuildContext context) {
     final store = context.watch<InventoryStore>();
     final q = query.toLowerCase();
-    final units = store.vehicles.where((v) {
-      return '${v.plate} ${v.brand} ${v.model} ${v.status}'.toLowerCase().contains(q);
-    }).toList();
+    final units = store.vehicles.where((v) => v.matchesQuery(q)).toList();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Unidades')),
@@ -136,6 +135,7 @@ class UnitDetailScreen extends StatelessWidget {
                 title: Text(itemName(store.items, m.itemSku)),
                 subtitle: Text('${prettyWhen(m.createdAt)} · ${m.userName}\n${m.qty} unidad descontada en tiempo real'),
                 isThreeLine: true,
+                trailing: CorrectPlateAction(movement: m),
               )),
         ],
       ),

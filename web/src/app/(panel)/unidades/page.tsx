@@ -3,8 +3,11 @@ import { RpcForm } from "@/components/rpc-form";
 import { SyncVehiclesButton } from "@/components/sync-vehicles-button";
 import { VehicleTable } from "@/components/vehicle-table";
 import { requireManagement } from "@/lib/auth";
-import { plateNorm } from "@/lib/format";
+import { plateNorm, when } from "@/lib/format";
 import type { VehicleDelivery, VehicleRow } from "@/lib/types";
+import { isPatioVehicle } from "@/lib/vehicle-scope";
+import { syncPatioIfStale } from "@/lib/sync-stock";
+import "@/components/patio.css";
 
 export const dynamic = "force-dynamic";
 
@@ -13,16 +16,9 @@ type SyncStateRow = {
   detail: { inserted?: number; updated?: number; retired?: number; source?: string };
 };
 
-function formatChileTime(iso: string) {
-  return new Intl.DateTimeFormat("es-CL", {
-    dateStyle: "short",
-    timeStyle: "short",
-    timeZone: "America/Santiago",
-  }).format(new Date(iso));
-}
-
 export default async function UnidadesPage() {
   const { db } = await requireManagement();
+  await syncPatioIfStale(20_000).catch(() => undefined);
   const [{ data: vehicles }, { data: sync }, { data: movements }, { data: items }] = await Promise.all([
     db.from("vehicles").select("*").order("brand"),
     db.from("sync_state").select("synced_at,detail").eq("key", "rg_motors_vehicles").limit(1),
@@ -58,32 +54,37 @@ export default async function UnidadesPage() {
       <PageHead
         eyebrow="Unidades"
         title="Patio"
-        lead="Expediente de cada patente. Bodega entrega sobre estas unidades. La hoja RG MOTORS se lee todos los días a las 9:00."
+        lead="Stock de las hojas RG MOTORS y Unidades Chile: patio, preparación, taller y Don Rudy. Las compras de Santiago van en Compras."
       />
-      <div className="card">
-        <p className="muted">
-          {lastSync?.synced_at
-            ? `Última lectura: ${formatChileTime(lastSync.synced_at)}. ${lastSync.detail?.updated ?? 0} actualizadas, ${lastSync.detail?.inserted ?? 0} nuevas.`
-            : "Aún no hay una lectura automática registrada."}
-        </p>
-        <SyncVehiclesButton />
-      </div>
-      <div className="card">
-        <RpcForm
-          fn="upsert_vehicle"
-          submit="Guardar unidad"
-          fields={[
-            { name: "p_plate", label: "Patente", required: true, placeholder: "THZF 75" },
-            { name: "p_brand", label: "Marca", required: true },
-            { name: "p_model", label: "Modelo", required: true },
-            { name: "p_year", label: "Año", type: "number", required: true },
-            { name: "p_color", label: "Color", required: true },
-            { name: "p_status", label: "Estado", placeholder: "Disponible" },
-          ]}
-        />
-      </div>
-      <div className="card">
-        <VehicleTable vehicles={(vehicles ?? []) as VehicleRow[]} deliveries={deliveries} />
+      <div className="patio-stack">
+        <div className="card patio-board">
+          <VehicleTable
+            vehicles={((vehicles ?? []) as VehicleRow[]).filter(isPatioVehicle)}
+            deliveries={deliveries}
+          />
+        </div>
+        <div className="card patio-tools">
+          <p className="muted">
+            {lastSync?.synced_at
+              ? `Última lectura: ${when(lastSync.synced_at)}. ${lastSync.detail?.updated ?? 0} actualizadas, ${lastSync.detail?.inserted ?? 0} nuevas.`
+              : "Aún no hay una lectura automática registrada."}
+          </p>
+          <SyncVehiclesButton />
+        </div>
+        <div className="card patio-tools">
+          <RpcForm
+            fn="upsert_vehicle"
+            submit="Guardar unidad"
+            fields={[
+              { name: "p_plate", label: "Patente", required: true, placeholder: "THZF 75" },
+              { name: "p_brand", label: "Marca", required: true },
+              { name: "p_model", label: "Modelo", required: true },
+              { name: "p_year", label: "Año", type: "number", required: true },
+              { name: "p_color", label: "Color", required: true },
+              { name: "p_status", label: "Estado", placeholder: "Disponible" },
+            ]}
+          />
+        </div>
       </div>
     </>
   );

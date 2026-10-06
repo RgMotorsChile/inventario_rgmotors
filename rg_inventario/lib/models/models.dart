@@ -74,6 +74,15 @@ class VehicleUnit {
 
   String get title => '$brand $model';
 
+  bool matchesQuery(String query) {
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return true;
+    final compactQ = q.replaceAll(RegExp(r'[^a-z0-9]'), '');
+    final compactPlate = plate.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+    if (compactQ.isNotEmpty && compactPlate.contains(compactQ)) return true;
+    return '$plate $brand $model $status'.toLowerCase().contains(q);
+  }
+
   factory VehicleUnit.fromMap(Map<String, dynamic> map) {
     return VehicleUnit(
       id: map['id'] as String,
@@ -181,6 +190,12 @@ class StockMovement {
   bool get isAssign => type == 'asignacion';
   bool get isReturn => type == 'devolucion';
   bool get isDamage => type == 'dano' || outcome == 'danado' || outcome == 'extraviado';
+
+  bool canCorrectPlate([DateTime? now]) {
+    if (!isUse && !isDamage) return false;
+    if (plate == null || plate!.trim().isEmpty) return false;
+    return (now ?? DateTime.now()).difference(createdAt) <= const Duration(hours: 24);
+  }
 
   String get outcomeLabel {
     switch (outcome) {

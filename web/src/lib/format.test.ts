@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { itemStatus, plateNorm, when, whenDate, whenTime } from "./format";
+import { canCorrectDeliveryPlate, itemStatus, plateNorm, when, whenDate, whenTime } from "./format";
 
 describe("plateNorm", () => {
   it("quita espacios y deja mayúsculas", () => {
@@ -45,5 +45,17 @@ describe("fechas Chile", () => {
 
   it("incluye el año en la fecha larga", () => {
     expect(whenDate(noonUtc)).toContain("2026");
+  });
+});
+
+describe("canCorrectDeliveryPlate", () => {
+  it("deja corregir dentro de 24 horas", () => {
+    const created = new Date("2026-09-23T12:00:00.000Z").getTime();
+    expect(canCorrectDeliveryPlate("2026-09-23T10:00:00.000Z", created)).toBe(true);
+  });
+
+  it("bloquea después de 24 horas", () => {
+    const created = new Date("2026-09-24T13:00:00.000Z").getTime();
+    expect(canCorrectDeliveryPlate("2026-09-23T12:00:00.000Z", created)).toBe(false);
   });
 });

@@ -12,6 +12,7 @@ const links = [
   ["/unidades", "Patio", "M5 11 7 6h10l2 5v6h-2.2a2.2 2.2 0 0 1-4.2 0H11.4a2.2 2.2 0 0 1-4.2 0H5v-6Zm2.3-3 1 3h7.4l1-3H7.3Z"],
   ["/personas", "Personas", "M12 12a3.5 3.5 0 1 0-3.5-3.5A3.5 3.5 0 0 0 12 12Zm-7 8v-.8A5.2 5.2 0 0 1 10.2 14h3.6A5.2 5.2 0 0 1 19 19.2v.8Z"],
   ["/historial", "Historial", "M12 4a8 8 0 1 1-8 8H2l3.2-3.4L8.4 12H6a6 6 0 1 0 1.8-4.2L6.4 6.4A8 8 0 0 1 12 4Zm-1 4h2v5h4v2h-6V8Z"],
+  ["/compras", "Compras", "M6 6h15l-1.5 9h-12zM6 6 5 3H2m7 18a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm9 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"],
 ] as const;
 
 export function Shell({

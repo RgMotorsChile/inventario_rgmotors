@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../state/inventory_store.dart';
 import '../theme.dart';
+import '../widgets/correct_plate.dart';
 import '../widgets/widgets.dart';
 import 'units_screen.dart';
 
@@ -136,7 +137,13 @@ class WorkerDetailScreen extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
                 title: Text(itemName(store.items, m.itemSku)),
                 subtitle: Text('${prettyWhen(m.createdAt)} · ${m.destination}'),
-                trailing: Text('${m.isReturn ? '+' : '-'}${m.qty}'),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CorrectPlateAction(movement: m),
+                    Text('${m.isReturn ? '+' : '-'}${m.qty}'),
+                  ],
+                ),
               )),
         ],
       ),

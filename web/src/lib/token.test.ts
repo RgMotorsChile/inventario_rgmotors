@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isPublicPath, userIdFromAccessToken } from "./token";
+import { isApiPath, isPublicPath, userIdFromAccessToken } from "./token";
 
 function encodeUnsignedJwt(payload: Record<string, unknown>) {
   const header = Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" })).toString("base64url");
@@ -22,7 +22,20 @@ describe("isPublicPath", () => {
     expect(isPublicPath("/unidades")).toBe(false);
     expect(isPublicPath("/personas")).toBe(false);
     expect(isPublicPath("/historial")).toBe(false);
+    expect(isPublicPath("/app")).toBe(false);
+    expect(isPublicPath("/compras")).toBe(false);
+    expect(isPublicPath("/cambiar-clave")).toBe(false);
     expect(isPublicPath("/api/export")).toBe(false);
+    expect(isPublicPath("/api/app/latest")).toBe(false);
+  });
+});
+
+describe("isApiPath", () => {
+  it("deja que /api autentique en el handler", () => {
+    expect(isApiPath("/api/app/latest")).toBe(true);
+    expect(isApiPath("/api/rpc")).toBe(true);
+    expect(isApiPath("/api/bodega/snapshot")).toBe(true);
+    expect(isApiPath("/inventario")).toBe(false);
   });
 });
 

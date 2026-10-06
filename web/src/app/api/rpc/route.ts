@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireManagement } from "@/lib/auth";
+import { requireManagementApi } from "@/lib/auth";
 import { requireStaffFromRequest } from "@/lib/bodegaAuth";
 import { createServerSupabase } from "@/lib/supabase/client";
 import { useSupabaseInventory } from "@/lib/db";
@@ -12,12 +12,13 @@ const STAFF_FNS = new Set([
   "return_assignment",
   "use_item",
   "deliver_item",
+  "correct_delivery_plate",
   "attach_box_evidence",
   "attach_receive_photo",
+  // Solo nombres públicos; el server remapea a *_for con p_user_id=gate.userId.
+  // Nunca exponer claim_invite_for / ensure_profile_for (IDOR de p_user_id).
   "claim_invite",
   "ensure_profile",
-  "claim_invite_for",
-  "ensure_profile_for",
 ]);
 
 const MANAGEMENT_FNS = new Set([
@@ -75,14 +76,29 @@ export async function POST(req: Request) {
         p_user_id: gate.userId,
         p_full_name: params.p_full_name ?? null,
       };
+    } else if (fn === "correct_delivery_plate") {
+      rpcParams = {
+        ...params,
+        p_actor_id: gate.userId,
+        p_actor_name: gate.profile.full_name,
+      };
     }
     const { data, error } = await sb.rpc(rpcFn, rpcParams);
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     return NextResponse.json({ data });
   }
 
-  await requireManagement();
-  const { data, error } = await sb.rpc(fn, params);
+  const session = await requireManagementApi();
+  if (!session.ok) return session.response;
+  const rpcParams =
+    fn === "correct_delivery_plate"
+      ? {
+          ...params,
+          p_actor_id: session.user.id,
+          p_actor_name: session.profile.full_name,
+        }
+      : params;
+  const { data, error } = await sb.rpc(fn, rpcParams);
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json({ data });
 }
