@@ -19,6 +19,16 @@ describe("detectInstallKind", () => {
     expect(isInAppBrowser("Mozilla/5.0 (iPhone) CriOS/128.0")).toBe(true);
     expect(isInAppBrowser("Mozilla/5.0 (iPhone) Version/17.0 Safari")).toBe(false);
   });
+
+  it("marca el navegador interno de WhatsApp en Android y no Chrome normal", () => {
+    expect(
+      isInAppBrowser(
+        "Mozilla/5.0 (Linux; Android 14; SM-A546E; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0 Mobile Safari/537.36",
+      ),
+    ).toBe(true);
+    expect(isInAppBrowser("Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/129.0 Mobile Safari/537.36 WhatsApp/2.24")).toBe(true);
+    expect(isInAppBrowser("Mozilla/5.0 (Linux; Android 14; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Mobile Safari/537.36")).toBe(false);
+  });
 });
 
 describe("isPublicInstallAsset", () => {

@@ -25,10 +25,12 @@ export function InstallAccess() {
       macTouch: /Macintosh/i.test(ua) && navigator.maxTouchPoints > 1,
     });
     setKind(next);
-    setEmbedded(isInAppBrowser(ua));
+    const inApp = isInAppBrowser(ua);
+    setEmbedded(inApp);
     // En /login no abrimos el diálogo solo: tapaba el formulario en el celular.
+    // Dentro de WhatsApp u otra app tampoco: no se puede instalar ahí y el aviso tapaba el panel.
     const onLogin = window.location.pathname.startsWith("/login");
-    if (!onLogin && next !== "standalone" && next !== "desktop" && !localStorage.getItem(INSTALL_HINT_KEY)) {
+    if (!onLogin && !inApp && next !== "standalone" && next !== "desktop" && !localStorage.getItem(INSTALL_HINT_KEY)) {
       setOpen(true);
     }
 
@@ -109,8 +111,14 @@ export function InstallAccess() {
             ) : kind === "android" ? (
               <>
                 <p className="lead">Puedes dejar el panel como una app, con el ícono de RG Motors.</p>
+                {embedded ? (
+                  <p className="err">
+                    Estás dentro de WhatsApp u otra app. Toca los tres puntos (⋮) y elige «Abrir en Chrome»; ahí
+                    repite estos pasos.
+                  </p>
+                ) : null}
                 <ol className="install-steps">
-                  <li>Toca el menú de Chrome (tres puntos).</li>
+                  <li>En Chrome, toca el menú (tres puntos ⋮).</li>
                   <li>
                     Elige <strong>Instalar aplicación</strong> o <strong>Agregar a pantalla de inicio</strong>.
                   </li>

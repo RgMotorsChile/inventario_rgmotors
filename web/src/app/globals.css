@@ -1140,3 +1140,9 @@ input:focus, select:focus, textarea:focus {
 .plate-cell { color: var(--text); font-weight: 600; white-space: nowrap; }
 .plate-unit { font-size: 0.6em; font-weight: 500; }
 .cell-note { font-size: 12px; margin-top: 2px; }
+
+/* Patentes: se ven en mayúsculas mientras se escriben (se guardan en mayúsculas igual). */
+input[autocapitalize="characters"] { text-transform: uppercase; }
+
+.plate-cards { flex-direction: column; gap: 10px; margin-top: 8px; }
+.plate-cards .item-card p { margin: 4px 0 0; }

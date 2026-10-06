@@ -10,7 +10,8 @@ export function isStandaloneDisplay(input: {
 }
 
 export function isInAppBrowser(ua: string) {
-  return /FBAN|FBAV|Instagram|Line\/|Twitter|LinkedInApp|WhatsApp|CriOS|FxiOS/i.test(ua);
+  // "; wv)" = WebView de Android: así abren los enlaces WhatsApp, Instagram y otras apps.
+  return /FBAN|FBAV|Instagram|Line\/|Twitter|LinkedInApp|WhatsApp|CriOS|FxiOS|; wv\)/i.test(ua);
 }
 
 export function detectInstallKind(input: {

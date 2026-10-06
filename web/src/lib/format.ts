@@ -55,3 +55,27 @@ export function itemStatus(stock: number, min: number) {
   if (stock <= min) return { label: "Stock bajo", tone: "warn" as const };
   return { label: "En nivel", tone: "ok" as const };
 }
+
+/**
+ * Excel no guarda zona horaria: devolvemos una fecha cuyos campos UTC son la hora de Chile,
+ * para que la planilla muestre la misma hora que el panel.
+ */
+export function chileWallClock(value: string | Date): Date {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", {
+      ...chile,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hourCycle: "h23",
+    })
+      .formatToParts(new Date(value))
+      .map((p) => [p.type, p.value]),
+  );
+  return new Date(
+    Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour, +parts.minute, +parts.second),
+  );
+}

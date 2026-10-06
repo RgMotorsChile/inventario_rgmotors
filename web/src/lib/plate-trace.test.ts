@@ -47,3 +47,11 @@ describe("trazabilidad por patente", () => {
     expect(movementTypeLabel("ajuste", null)).toBe("Ajuste");
   });
 });
+
+describe("chileWallClock", () => {
+  it("deja en el Excel la hora de Chile, no la UTC", async () => {
+    const { chileWallClock } = await import("./format");
+    expect(chileWallClock("2026-10-06T19:36:49Z").toISOString()).toBe("2026-10-06T16:36:49.000Z");
+    expect(chileWallClock("2026-07-01T12:00:00Z").toISOString()).toBe("2026-07-01T08:00:00.000Z");
+  });
+});
