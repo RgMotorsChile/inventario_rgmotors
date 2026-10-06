@@ -8,11 +8,14 @@ export const dynamic = "force-dynamic";
 
 export default async function InventarioPage() {
   const { db } = await requireManagement();
-  const [{ data: items }, { data: assignments }, { data: categories }] = await Promise.all([
-    db.from("items").select("*").order("name"),
-    db.from("assignments").select("*").eq("status", "abierta"),
-    db.from("categories").select("*").order("name"),
-  ]);
+  const [{ data: items }, { data: assignments }, { data: categories }, { data: workers }, { data: vehicles }] =
+    await Promise.all([
+      db.from("items").select("*").order("name"),
+      db.from("assignments").select("*").eq("status", "abierta"),
+      db.from("categories").select("*").order("name"),
+      db.from("workers").select("id,full_name,active").eq("active", true).order("full_name"),
+      db.from("vehicles").select("plate").order("plate"),
+    ]);
   const stock = (items ?? []) as ItemRow[];
   const cats = [...new Set([...(categories ?? []).map((c) => c.name), ...stock.map((i) => i.category)])].sort();
 
@@ -50,6 +53,50 @@ export default async function InventarioPage() {
             { name: "p_location", label: "Ubicación", required: true },
             { name: "p_unit_cost", label: "Costo", type: "number", required: true, min: 0, step: "any" },
             { name: "p_compatible", label: "Compatible" },
+          ]}
+        />
+      </div>
+      <div className="card">
+        <h2>Salida a vehículo</h2>
+        <p className="muted">
+          Para repuestos que se instalan en una patente. Queda en Historial con quién lo instaló y quién lo registró.
+        </p>
+        <RpcForm
+          fn="deliver_item"
+          submit="Registrar salida"
+          extra={{ p_outcome: "instalado" }}
+          fields={[
+            {
+              name: "p_sku",
+              label: "Repuesto",
+              required: true,
+              options: [
+                { value: "", label: "Elige…" },
+                ...stock
+                  .filter((i) => Number(i.stock) > 0)
+                  .map((i) => ({ value: i.sku, label: `${i.name} · ${i.stock} en bodega` })),
+              ],
+            },
+            { name: "p_qty", label: "Cantidad", type: "number", required: true, min: 1, step: 1 },
+            {
+              name: "p_plate",
+              label: "Patente",
+              required: true,
+              uppercase: true,
+              placeholder: "ABCD 12",
+              maxLength: 12,
+              suggestions: (vehicles ?? []).map((v) => String(v.plate)),
+            },
+            {
+              name: "p_worker_id",
+              label: "Instaló",
+              required: true,
+              options: [
+                { value: "", label: "Elige…" },
+                ...(workers ?? []).map((w) => ({ value: String(w.id), label: String(w.full_name) })),
+              ],
+            },
+            { name: "p_note", label: "Nota (opcional)" },
           ]}
         />
       </div>

@@ -17,9 +17,11 @@ const links = [
 
 export function Shell({
   name,
+  role,
   children,
 }: {
   name: string;
+  role?: string;
   path?: string;
   children: React.ReactNode;
 }) {
@@ -36,7 +38,7 @@ export function Shell({
         <div className="side-head">
           <BrandLogo priority />
           <div className="side-user">
-            <p className="eyebrow">Jefatura</p>
+            <p className="eyebrow">{role === "admin" ? "Administrador" : "Jefatura"}</p>
             <strong className="side-name">{name}</strong>
             <div className="muted side-place">Puerto Montt · Av. Cardonal</div>
           </div>

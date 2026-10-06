@@ -54,6 +54,13 @@ describe("parseRpcBody", () => {
   });
 });
 
+describe("salida a vehículo desde el panel", () => {
+  it("jefatura/admin puede registrar deliver_item desde la web", () => {
+    const req = { fn: "deliver_item", params: { p_sku: "BAR-1", p_qty: 1, p_plate: "AB 12", p_outcome: "instalado" } };
+    expect(authorizeRpc(req, panel)).toEqual({ ok: true, fn: "deliver_item", params: req.params });
+  });
+});
+
 describe("correct_delivery_plate", () => {
   it("el actor sale de la sesión, no del cliente", () => {
     const req = { fn: "correct_delivery_plate", params: { p_movement_id: "m1", p_plate: "AB 12", p_actor_id: "falso", p_actor_name: "Falso" } };

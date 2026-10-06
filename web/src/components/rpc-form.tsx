@@ -15,6 +15,9 @@ export type RpcField = {
   step?: number | "any";
   options?: { value: string; label: string }[];
   uppercase?: boolean;
+  /** Valores sugeridos (datalist): se puede elegir uno o escribir otro. */
+  suggestions?: string[];
+  maxLength?: number;
 };
 
 export function RpcForm({
@@ -77,16 +80,28 @@ export function RpcForm({
               ))}
             </select>
           ) : (
-            <input
-              name={field.name}
-              type={field.type ?? "text"}
-              required={field.required}
-              placeholder={field.placeholder}
-              min={field.min}
-              max={field.max}
-              step={field.step}
-              autoCapitalize={field.uppercase ? "characters" : undefined}
-            />
+            <>
+              <input
+                name={field.name}
+                type={field.type ?? "text"}
+                required={field.required}
+                placeholder={field.placeholder}
+                min={field.min}
+                max={field.max}
+                step={field.step}
+                maxLength={field.maxLength}
+                list={field.suggestions ? `${fn}-${field.name}-list` : undefined}
+                autoComplete={field.suggestions ? "off" : undefined}
+                autoCapitalize={field.uppercase ? "characters" : undefined}
+              />
+              {field.suggestions ? (
+                <datalist id={`${fn}-${field.name}-list`}>
+                  {field.suggestions.map((value) => (
+                    <option key={value} value={value} />
+                  ))}
+                </datalist>
+              ) : null}
+            </>
           )}
         </label>
       ))}
