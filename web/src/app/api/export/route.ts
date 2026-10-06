@@ -1,6 +1,8 @@
 import ExcelJS from "exceljs";
 import { NextResponse } from "next/server";
 import { requireManagement } from "@/lib/auth";
+import { plateNorm } from "@/lib/format";
+import { PLATE_EXIT_TYPES, movementsForPlate, outcomeLabel, parsePlateParam } from "@/lib/plate-trace";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +10,59 @@ function stamp() {
   return new Date().toISOString().slice(0, 16).replace(/[:T]/g, "");
 }
 
-export async function GET() {
+function xlsxResponse(buffer: ArrayBuffer | Buffer, filename: string) {
+  return new NextResponse(Buffer.from(buffer as ArrayBuffer), {
+    headers: {
+      "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
+/** Excel de una sola patente: qué repuestos se le pusieron, cuántos, quién y cuándo. */
+async function plateExport(plate: string) {
+  const { db } = await requireManagement();
+  const [{ data: movements }, { data: items }, { data: vehicles }] = await Promise.all([
+    db
+      .from("movements")
+      .select("type,item_sku,qty,plate,worker_name,outcome,note,user_name,created_at")
+      .in("type", [...PLATE_EXIT_TYPES])
+      .order("created_at", { ascending: false })
+      .limit(3000),
+    db.from("items").select("sku,name"),
+    db.from("vehicles").select("plate,brand,model,year"),
+  ]);
+  const rows = movementsForPlate(movements ?? [], plate);
+  const vehicle = (vehicles ?? []).find((v) => plateNorm(v.plate) === plateNorm(plate));
+  const book = new ExcelJS.Workbook();
+  book.creator = "RG Motors";
+  const sheet = book.addWorksheet(`Repuestos ${plateNorm(plate)}`);
+  sheet.addRow(["Patente", vehicle?.plate ?? plate]);
+  sheet.addRow(["Unidad", vehicle ? `${vehicle.brand} ${vehicle.model} ${vehicle.year ?? ""}`.trim() : ""]);
+  sheet.addRow([]);
+  sheet.addRow(["Fecha", "Repuesto", "SKU", "Cantidad", "Resultado", "Instaló / recibió", "Registró", "Nota"]);
+  for (const m of rows) {
+    sheet.addRow([
+      new Date(m.created_at),
+      items?.find((i) => i.sku === m.item_sku)?.name ?? m.item_sku,
+      m.item_sku,
+      m.qty,
+      outcomeLabel(m.outcome),
+      m.worker_name ?? "",
+      m.user_name ?? "",
+      m.note ?? "",
+    ]);
+  }
+  sheet.getColumn(1).numFmt = "dd-mm-yyyy hh:mm";
+  sheet.columns.forEach((col) => (col.width = 18));
+  const buffer = await book.xlsx.writeBuffer();
+  return xlsxResponse(buffer, `RG_Repuestos_${plateNorm(plate)}_${stamp()}.xlsx`);
+}
+
+export async function GET(req: Request) {
+  const plate = parsePlateParam(new URL(req.url).searchParams.get("patente") ?? undefined);
+  if (plate) return plateExport(plate);
   const { db } = await requireManagement();
   const [{ data: items }, { data: movements }, { data: assignments }, { data: workers }, { data: vehicles }] =
     await Promise.all([
@@ -70,10 +124,20 @@ export async function GET() {
   }
 
   const used = book.addWorksheet("Usado en vehiculos");
-  used.addRow(["Patente", "Unidad", "SKU", "Cantidad", "Cuando"]);
-  for (const m of (movements ?? []).filter((row) => row.type === "uso")) {
-    const v = vehicles?.find((unit) => unit.plate === m.plate);
-    used.addRow([m.plate, v ? `${v.brand} ${v.model}` : "", m.item_sku, m.qty, m.created_at]);
+  used.addRow(["Patente", "Unidad", "Repuesto", "SKU", "Cantidad", "Resultado", "Instaló / recibió", "Registró", "Cuando"]);
+  for (const m of (movements ?? []).filter((row) => PLATE_EXIT_TYPES.includes(row.type) && row.plate)) {
+    const v = vehicles?.find((unit) => plateNorm(unit.plate) === plateNorm(m.plate));
+    used.addRow([
+      m.plate,
+      v ? `${v.brand} ${v.model}` : "",
+      items?.find((i) => i.sku === m.item_sku)?.name ?? m.item_sku,
+      m.item_sku,
+      m.qty,
+      outcomeLabel(m.outcome),
+      m.worker_name ?? "",
+      m.user_name ?? "",
+      m.created_at,
+    ]);
   }
 
   const moves = book.addWorksheet("Movimientos");
@@ -83,11 +147,5 @@ export async function GET() {
   }
 
   const buffer = await book.xlsx.writeBuffer();
-  return new NextResponse(Buffer.from(buffer), {
-    headers: {
-      "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="RG_Inventario_${stamp()}.xlsx"`,
-      "Cache-Control": "no-store",
-    },
-  });
+  return xlsxResponse(buffer, `RG_Inventario_${stamp()}.xlsx`);
 }

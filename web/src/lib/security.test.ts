@@ -61,3 +61,25 @@ describe("superficie del panel", () => {
     }
   });
 });
+
+describe("trazabilidad por patente", () => {
+  it("Historial tiene filtro y columna de patente", () => {
+    const page = read("web/src/app/(panel)/historial/page.tsx");
+    expect(page).toContain('name="patente"');
+    expect(page).toContain("<th>Patente</th>");
+    expect(page).toContain("/api/export?patente=");
+  });
+
+  it("la salida web a vehículo exige patente e instalado", () => {
+    const page = read("web/src/app/(panel)/inventario/page.tsx");
+    expect(page).toContain('fn="deliver_item"');
+    expect(page).toContain('p_outcome: "instalado"');
+    expect(page).toMatch(/name: "p_plate",[\s\S]*?required: true/);
+  });
+
+  it("la base no acepta 'instalado' sin patente", () => {
+    const sql = read("migrations/20261006200000_patente-obligatoria-instalado.sql");
+    expect(sql).toContain("elsif p_outcome = 'instalado' then");
+    expect(sql).not.toMatch(/drop\s+(table|column)/i);
+  });
+});

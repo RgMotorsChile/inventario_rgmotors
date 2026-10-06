@@ -1131,3 +1131,12 @@ input:focus, select:focus, textarea:focus {
   }
   .side a.active { box-shadow: var(--highlight); }
 }
+
+/* Historial por patente */
+.filter-actions { justify-content: flex-start; align-self: end; }
+.plate-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.plate-link { font-size: 13px; padding: 6px 12px; color: var(--text); text-decoration: none; }
+.plate-link:hover { background: rgba(46, 98, 184, 0.16); }
+.plate-cell { color: var(--text); font-weight: 600; white-space: nowrap; }
+.plate-unit { font-size: 0.6em; font-weight: 500; }
+.cell-note { font-size: 12px; margin-top: 2px; }
