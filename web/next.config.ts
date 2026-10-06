@@ -36,7 +36,6 @@ const nextConfig: NextConfig = {
       { source: "/movimientos", destination: "/historial", permanent: false },
       { source: "/trabajadores", destination: "/personas", permanent: false },
       { source: "/equipo", destination: "/personas", permanent: false },
-      { source: "/app", destination: "/compras", permanent: false },
     ];
   },
 };

@@ -32,17 +32,6 @@ export async function signEvidencePaths(
   return out;
 }
 
-export async function loadBoxEvidence(boxIds: string[]): Promise<EvidenceRow[]> {
-  if (boxIds.length === 0) return [];
-  const sb = createServerSupabase();
-  const { data } = await sb
-    .from("box_evidence")
-    .select("id, storage_path, created_at, box_id")
-    .in("box_id", boxIds)
-    .order("created_at", { ascending: false });
-  return (data as EvidenceRow[]) ?? [];
-}
-
 export async function loadReceivePhotos(movementIds: string[]): Promise<EvidenceRow[]> {
   if (movementIds.length === 0) return [];
   const sb = createServerSupabase();

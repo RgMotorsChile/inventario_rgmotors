@@ -60,6 +60,14 @@ describe("superficie del panel", () => {
       expect(() => read(`web/src/app/${old}/page.tsx`)).toThrow();
     }
   });
+
+  it("/app y /cajas ya no existen; queda solo la API que usa la app de bodega para actualizarse", () => {
+    expect(() => read("web/src/app/(panel)/app/page.tsx")).toThrow();
+    expect(() => read("web/src/app/cajas/page.tsx")).toThrow();
+    expect(() => read("web/src/app/api/app/release/route.ts")).toThrow();
+    expect(read("web/next.config.ts")).not.toContain('"/app"');
+    expect(read("web/src/app/api/app/latest/route.ts")).toContain("app_releases");
+  });
 });
 
 describe("trazabilidad por patente", () => {

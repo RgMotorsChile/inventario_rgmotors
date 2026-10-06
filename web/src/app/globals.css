@@ -1038,17 +1038,33 @@ input:focus, select:focus, textarea:focus {
   right: max(16px, env(safe-area-inset-right));
   bottom: max(16px, env(safe-area-inset-bottom));
   z-index: 30;
+  display: flex;
+  align-items: center;
   min-height: 40px;
-  padding: 8px 14px;
   border: 1px solid var(--line-strong);
   border-radius: 999px;
   background: rgba(16, 20, 29, 0.92);
+  box-shadow: var(--highlight), var(--shadow);
+}
+.install-pill button {
+  min-height: 40px;
+  padding: 8px 6px 8px 14px;
+  border: 0;
+  background: none;
   color: var(--text);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: var(--highlight), var(--shadow);
 }
+.install-pill .install-pill-close {
+  min-width: 40px;
+  padding: 8px 12px 8px 6px;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1;
+}
+/* Espacio al final de la página para que el botón flotante no tape el último contenido. */
+html.has-install-pill body { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
 
 .install-sheet .lead { margin: 0 0 8px; }
 
