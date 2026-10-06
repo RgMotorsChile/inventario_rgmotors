@@ -1,13 +1,13 @@
 import ExcelJS from "exceljs";
 import { NextResponse } from "next/server";
 import { requireManagement } from "@/lib/auth";
-import { plateNorm } from "@/lib/format";
+import { chileWallClock, plateNorm } from "@/lib/format";
 import { PLATE_EXIT_TYPES, movementsForPlate, outcomeLabel, parsePlateParam } from "@/lib/plate-trace";
 
 export const dynamic = "force-dynamic";
 
 function stamp() {
-  return new Date().toISOString().slice(0, 16).replace(/[:T]/g, "");
+  return chileWallClock(new Date()).toISOString().slice(0, 16).replace(/[:T]/g, "");
 }
 
 function xlsxResponse(buffer: ArrayBuffer | Buffer, filename: string) {
@@ -44,7 +44,7 @@ async function plateExport(plate: string) {
   sheet.addRow(["Fecha", "Repuesto", "SKU", "Cantidad", "Resultado", "Instaló / recibió", "Registró", "Nota"]);
   for (const m of rows) {
     sheet.addRow([
-      new Date(m.created_at),
+      chileWallClock(m.created_at),
       items?.find((i) => i.sku === m.item_sku)?.name ?? m.item_sku,
       m.item_sku,
       m.qty,
@@ -120,8 +120,9 @@ export async function GET(req: Request) {
   people.addRow(["Trabajador", "SKU", "Cantidad", "Desde"]);
   for (const a of open) {
     const worker = workers?.find((w) => w.id === a.worker_id);
-    people.addRow([worker?.full_name ?? "", a.item_sku, a.qty, a.created_at]);
+    people.addRow([worker?.full_name ?? "", a.item_sku, a.qty, chileWallClock(a.created_at)]);
   }
+  people.getColumn(4).numFmt = "dd-mm-yyyy hh:mm";
 
   const used = book.addWorksheet("Usado en vehiculos");
   used.addRow(["Patente", "Unidad", "Repuesto", "SKU", "Cantidad", "Resultado", "Instaló / recibió", "Registró", "Cuando"]);
@@ -136,15 +137,18 @@ export async function GET(req: Request) {
       outcomeLabel(m.outcome),
       m.worker_name ?? "",
       m.user_name ?? "",
-      m.created_at,
+      chileWallClock(m.created_at),
     ]);
   }
+  used.getColumn(9).numFmt = "dd-mm-yyyy hh:mm";
 
   const moves = book.addWorksheet("Movimientos");
   moves.addRow(["Fecha", "Tipo", "SKU", "Cantidad", "Patente", "Trabajador", "Nota", "Registro"]);
   for (const m of movements ?? []) {
-    moves.addRow([m.created_at, m.type, m.item_sku, m.qty, m.plate, m.worker_name, m.note, m.user_name]);
+    moves.addRow([chileWallClock(m.created_at), m.type, m.item_sku, m.qty, m.plate, m.worker_name, m.note, m.user_name]);
   }
+
+  moves.getColumn(1).numFmt = "dd-mm-yyyy hh:mm";
 
   const buffer = await book.xlsx.writeBuffer();
   return xlsxResponse(buffer, `RG_Inventario_${stamp()}.xlsx`);

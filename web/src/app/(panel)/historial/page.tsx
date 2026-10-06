@@ -139,7 +139,7 @@ export default async function HistorialPage({
                   {filtered.length} {filtered.length === 1 ? "salida" : "salidas"} · {filteredQty}{" "}
                   {filteredQty === 1 ? "unidad" : "unidades"}
                 </p>
-                <div className="table-wrap">
+                <div className="table-wrap desktop-only">
                   <table>
                     <thead>
                       <tr>
@@ -167,6 +167,23 @@ export default async function HistorialPage({
                       ))}
                     </tbody>
                   </table>
+                </div>
+                <div className="item-list mobile-only plate-cards">
+                  {filtered.map((m) => (
+                    <article className="item-card" key={m.id}>
+                      <div className="item-card-top">
+                        <strong>
+                          {nameOf(m.item_sku)} ×{m.qty}
+                        </strong>
+                        <span className="pill">{outcomeLabel(m.outcome)}</span>
+                      </div>
+                      <p className="muted">
+                        Instaló: {m.worker_name ?? "—"} · Registró: {m.user_name ?? "—"}
+                      </p>
+                      <p className="muted">{when(m.created_at)}</p>
+                      {m.note ? <p className="muted cell-note">{m.note}</p> : null}
+                    </article>
+                  ))}
                 </div>
               </>
             )}
@@ -229,9 +246,9 @@ export default async function HistorialPage({
             <thead>
               <tr>
                 <th>Cuándo</th>
+                <th>Patente</th>
                 <th>Tipo</th>
                 <th>Elemento</th>
-                <th>Patente</th>
                 <th>Responsable</th>
                 <th>Registró</th>
                 <th>Evidencia</th>
@@ -248,10 +265,6 @@ export default async function HistorialPage({
               {history.map((m) => (
                 <tr key={m.id}>
                   <td>{when(m.created_at)}</td>
-                  <td>{movementTypeLabel(m.type, m.outcome)}</td>
-                  <td>
-                    {nameOf(m.item_sku)} ×{m.qty}
-                  </td>
                   <td>
                     {m.plate ? (
                       <Link className="plate-cell" href={`/historial?patente=${encodeURIComponent(m.plate)}`}>
@@ -267,6 +280,10 @@ export default async function HistorialPage({
                       type={m.type}
                       itemLabel={nameOf(m.item_sku)}
                     />
+                  </td>
+                  <td>{movementTypeLabel(m.type, m.outcome)}</td>
+                  <td>
+                    {nameOf(m.item_sku)} ×{m.qty}
                   </td>
                   <td>{m.worker_name ?? (m.plate ? "—" : (m.note ?? "—"))}</td>
                   <td>{m.user_name}</td>
