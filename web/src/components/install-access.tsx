@@ -15,6 +15,8 @@ export function InstallAccess() {
   const [open, setOpen] = useState(false);
   const [embedded, setEmbedded] = useState(false);
   const [androidPrompt, setAndroidPrompt] = useState<PromptEvent | null>(null);
+  // El botón flotante se oculta para siempre al tocar "Ahora no" o la ×: así no tapa el final de la página.
+  const [pillHidden, setPillHidden] = useState(true);
 
   useEffect(() => {
     const ua = navigator.userAgent;
@@ -27,6 +29,7 @@ export function InstallAccess() {
     setKind(next);
     const inApp = isInAppBrowser(ua);
     setEmbedded(inApp);
+    setPillHidden(Boolean(localStorage.getItem(INSTALL_HINT_KEY)));
     // En /login no abrimos el diálogo solo: tapaba el formulario en el celular.
     // Dentro de WhatsApp u otra app tampoco: no se puede instalar ahí y el aviso tapaba el panel.
     const onLogin = window.location.pathname.startsWith("/login");
@@ -52,13 +55,22 @@ export function InstallAccess() {
     };
   }, []);
 
-  if (!kind || kind === "standalone") return null;
-
   const mobile = kind === "ios" || kind === "android";
+  const showPill = mobile && !pillHidden;
+
+  // Mientras el botón está visible, la página deja espacio abajo para que no tape contenido.
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.toggle("has-install-pill", showPill);
+    return () => root.classList.remove("has-install-pill");
+  }, [showPill]);
+
+  if (!kind || kind === "standalone") return null;
 
   function dismiss() {
     localStorage.setItem(INSTALL_HINT_KEY, "1");
     setOpen(false);
+    setPillHidden(true);
   }
 
   async function installAndroid() {
@@ -73,10 +85,15 @@ export function InstallAccess() {
 
   return (
     <>
-      {mobile ? (
-        <button className="install-pill" type="button" onClick={() => (kind === "android" && androidPrompt ? installAndroid() : setOpen(true))}>
-          Instalar en el celular
-        </button>
+      {showPill ? (
+        <div className="install-pill">
+          <button type="button" onClick={() => (kind === "android" && androidPrompt ? installAndroid() : setOpen(true))}>
+            Instalar en el celular
+          </button>
+          <button type="button" className="install-pill-close" aria-label="Ocultar" onClick={dismiss}>
+            ×
+          </button>
+        </div>
       ) : null}
 
       {open ? (

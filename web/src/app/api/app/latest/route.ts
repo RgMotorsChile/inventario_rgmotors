@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { requireStaffFromRequest } from "@/lib/bodegaAuth";
-import { APP_RELEASES_BUCKET } from "@/lib/app-release";
 import { RG_MOTORS_TENANT_ID, useSupabaseInventory } from "@/lib/db";
 import { createServerSupabase } from "@/lib/supabase/client";
+
+/** Bucket donde scripts/publish-apk.mjs sube la APK de bodega. */
+const APP_RELEASES_BUCKET = "app-releases";
 
 export async function GET(req: Request) {
   if (!useSupabaseInventory()) {

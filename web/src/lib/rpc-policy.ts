@@ -28,7 +28,6 @@ export const MANAGEMENT_FNS = new Set([
   "upsert_vehicle",
   "upsert_worker",
   "delete_worker",
-  "create_box",
   "create_invite",
   "set_profile_active",
 ]);
