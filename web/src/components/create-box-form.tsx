@@ -14,9 +14,11 @@ export function CreateBoxForm({ items }: { items: Item[] }) {
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (busy) return;
+    const form = event.currentTarget;
     setBusy(true);
     setError(null);
-    const data = new FormData(event.currentTarget);
+    const data = new FormData(form);
     const { error: rpcError } = await callRpc("create_box", {
       p_code: String(data.get("code")),
       p_barcode: String(data.get("barcode")),
@@ -29,7 +31,7 @@ export function CreateBoxForm({ items }: { items: Item[] }) {
       setError(rpcError.message);
       return;
     }
-    event.currentTarget.reset();
+    form.reset();
     setLines([{ sku: items[0]?.sku ?? "", qty: 1 }]);
     router.refresh();
   }

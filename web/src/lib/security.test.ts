@@ -39,3 +39,25 @@ describe("secretos y superficie pública", () => {
     expect(store).not.toMatch(/from\('items'\)\.(update|insert|delete)/);
   });
 });
+
+describe("superficie del panel", () => {
+  it("/api/rpc no expone las RPC *_for con p_user_id libre", () => {
+    const policy = read("web/src/lib/rpc-policy.ts");
+    const staff = policy.slice(policy.indexOf("STAFF_FNS"), policy.indexOf("MANAGEMENT_FNS"));
+    expect(staff).not.toContain('"claim_invite_for"');
+    expect(staff).not.toContain('"ensure_profile_for"');
+  });
+
+  it("next.config manda cabeceras anti-clickjacking y nosniff", () => {
+    const cfg = read("web/next.config.ts");
+    expect(cfg).toContain("frame-ancestors 'none'");
+    expect(cfg).toContain("X-Content-Type-Options");
+    expect(cfg).toContain("async headers()");
+  });
+
+  it("las pantallas antiguas ya no existen (solo quedan los redirects)", () => {
+    for (const old of ["stock", "catalogo", "categorias", "rastro", "movimientos", "trabajadores", "equipo"]) {
+      expect(() => read(`web/src/app/${old}/page.tsx`)).toThrow();
+    }
+  });
+});

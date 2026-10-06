@@ -5,6 +5,10 @@ import {
   TENANT,
 } from "@/lib/bodegaAuth";
 import { useSupabaseInventory } from "@/lib/db";
+import { isPatioVehicle } from "@/lib/vehicle-scope";
+import { syncPatioIfStale } from "@/lib/sync-stock";
+
+export const maxDuration = 60;
 
 export async function GET(req: Request) {
   const gate = await requireStaffFromRequest(req);
@@ -19,6 +23,8 @@ export async function GET(req: Request) {
     );
   }
 
+  await syncPatioIfStale(20_000).catch(() => undefined);
+
   const sb = inventoryDb()!;
   const t = TENANT;
   const [
@@ -32,7 +38,11 @@ export async function GET(req: Request) {
     categories,
   ] = await Promise.all([
     sb.from("items").select("*").eq("tenant_id", t).order("name"),
-    sb.from("vehicles").select("*").eq("tenant_id", t).order("brand"),
+    sb
+      .from("vehicles")
+      .select("id,plate,brand,model,year,color,status,source,location")
+      .eq("tenant_id", t)
+      .order("brand"),
     sb
       .from("movements")
       .select("*")
@@ -71,7 +81,9 @@ export async function GET(req: Request) {
     source: "supabase",
     profile: gate.profile,
     items: items.data ?? [],
-    vehicles: vehicles.data ?? [],
+    vehicles: (vehicles.data ?? [])
+      .filter((row) => isPatioVehicle(row))
+      .map(({ source: _source, location: _location, ...row }) => row),
     movements: movements.data ?? [],
     boxes: boxes.data ?? [],
     box_lines: boxLines.data ?? [],

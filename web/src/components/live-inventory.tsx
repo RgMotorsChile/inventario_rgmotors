@@ -167,13 +167,11 @@ export function LiveMoves({ initial }: { initial: MovementRow[] }) {
   const [rows, setRows] = useState(initial ?? []);
   useEffect(() => {
     const load = async () => {
-      const res = await fetch("/api/inventory/live?kind=movements");
-      if (!res.ok) return;
-      const json = (await res.json()) as { data?: MovementRow[] };
-      setRows(json.data ?? []);
+      const json = await fetchLive<MovementRow>("movements");
+      if (json) setRows(json);
     };
     const timer = window.setInterval(() => {
-      void load();
+      if (document.visibilityState === "visible") void load();
     }, 8000);
     return () => window.clearInterval(timer);
   }, []);
@@ -232,20 +230,28 @@ function useInventoryRealtime(
 ) {
   useEffect(() => {
     const reload = async () => {
-      const res = await fetch("/api/inventory/live?kind=items");
-      if (!res.ok) return;
-      const json = (await res.json()) as { data?: ItemRow[] };
-      setItems(json.data ?? []);
+      const rows = await fetchLive<ItemRow>("items");
+      if (rows) setItems(rows);
       if (setAssignments) {
-        const asgRes = await fetch("/api/inventory/live?kind=assignments");
-        if (!asgRes.ok) return;
-        const asgJson = (await asgRes.json()) as { data?: AssignmentRow[] };
-        setAssignments(asgJson.data ?? []);
+        const asg = await fetchLive<AssignmentRow>("assignments");
+        if (asg) setAssignments(asg);
       }
     };
     const timer = window.setInterval(() => {
-      void reload();
+      if (document.visibilityState === "visible") void reload();
     }, 8000);
     return () => window.clearInterval(timer);
   }, [setItems, setAssignments]);
+}
+
+/** Lectura en vivo tolerante a cortes de red: devuelve null en vez de lanzar. */
+async function fetchLive<T>(kind: "items" | "assignments" | "movements"): Promise<T[] | null> {
+  try {
+    const res = await fetch(`/api/inventory/live?kind=${kind}`, { cache: "no-store" });
+    if (!res.ok || res.redirected) return null;
+    const json = (await res.json()) as { data?: T[] };
+    return Array.isArray(json.data) ? json.data : null;
+  } catch {
+    return null;
+  }
 }

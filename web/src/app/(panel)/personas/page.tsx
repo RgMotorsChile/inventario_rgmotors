@@ -42,9 +42,18 @@ export default async function PersonasPage() {
           submit="Generar código"
           fields={[
             { name: "p_email", label: "Correo (opcional)" },
-            { name: "p_role", label: "Rol", placeholder: "bodega o jefatura", required: true },
+            {
+              name: "p_role",
+              label: "Rol",
+              required: true,
+              options: [
+                { value: "bodega", label: "Bodega (app móvil)" },
+                { value: "jefatura", label: "Jefatura (esta web)" },
+              ],
+            },
           ]}
         />
+        <div className="table-wrap">
         <table>
           <thead>
             <tr>
@@ -67,9 +76,11 @@ export default async function PersonasPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
       <div className="card">
         <h2>Usuarios</h2>
+        <div className="table-wrap">
         <table>
           <thead>
             <tr>
@@ -88,6 +99,7 @@ export default async function PersonasPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </>
   );

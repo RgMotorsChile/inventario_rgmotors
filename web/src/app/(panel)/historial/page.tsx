@@ -1,3 +1,4 @@
+import { CorrectPlateButton } from "@/components/correct-plate-button";
 import { EvidenceThumbs } from "@/components/evidence-thumbs";
 import { PageHead } from "@/components/page-head";
 import { requireManagement } from "@/lib/auth";
@@ -134,7 +135,16 @@ export default async function HistorialPage() {
                 <td>
                   {nameOf(m.item_sku)} ×{m.qty}
                 </td>
-                <td>{m.plate ?? m.worker_name ?? m.note ?? "—"}</td>
+                <td>
+                  {m.plate ?? m.worker_name ?? m.note ?? "—"}
+                  <CorrectPlateButton
+                    movementId={m.id}
+                    currentPlate={m.plate}
+                    createdAt={m.created_at}
+                    type={m.type}
+                    itemLabel={nameOf(m.item_sku)}
+                  />
+                </td>
                 <td>{m.user_name}</td>
                 <td>
                   <EvidenceThumbs urls={photosByMovement.get(m.id) ?? []} />

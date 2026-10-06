@@ -64,4 +64,10 @@ export type VehicleRow = {
   year: number;
   color: string;
   status: string;
+  supplier?: string | null;
+  location?: string | null;
+  source?: string | null;
+  purchase_lot?: string | null;
+  note?: string | null;
+  note_audio_path?: string | null;
 };

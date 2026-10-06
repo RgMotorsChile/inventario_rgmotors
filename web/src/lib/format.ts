@@ -41,6 +41,15 @@ export function whenTime(value: string | null | undefined) {
   }).format(new Date(value));
 }
 
+export const CORRECT_PLATE_HOURS = 24;
+
+export function canCorrectDeliveryPlate(createdAt: string | null | undefined, now = Date.now()) {
+  if (!createdAt) return false;
+  const created = new Date(createdAt).getTime();
+  if (Number.isNaN(created)) return false;
+  return now - created <= CORRECT_PLATE_HOURS * 60 * 60 * 1000;
+}
+
 export function itemStatus(stock: number, min: number) {
   if (stock <= 0) return { label: "Sin stock", tone: "bad" as const };
   if (stock <= min) return { label: "Stock bajo", tone: "warn" as const };

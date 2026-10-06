@@ -195,9 +195,7 @@ class _AssignScreenState extends State<AssignScreen> {
 
   List<Widget> _destinationStep(InventoryStore store, StockItem? item) {
     final q = plateSearch.text.toLowerCase();
-    final units = store.vehicles.where((v) {
-      return '${v.plate} ${v.brand} ${v.model}'.toLowerCase().contains(q);
-    }).toList();
+    final units = store.vehicles.where((v) => v.matchesQuery(q)).toList();
     final worker = workerId == null ? null : store.workerById(workerId!);
     final noteOk = note.text.trim().isNotEmpty;
     final canSave = item != null && workerId != null && (otherUse ? noteOk : plate != null);
@@ -268,7 +266,7 @@ class _AssignScreenState extends State<AssignScreen> {
         ),
         const SizedBox(height: 8),
         if (store.vehicles.isEmpty)
-          const Text('Aún no hay patentes. Espera la lectura de RG MOTORS.', style: TextStyle(color: RgColors.yellow))
+          const Text('Aún no hay patentes. Espera la lectura de RG MOTORS, Unidades Chile y Salgado.', style: TextStyle(color: RgColors.yellow))
         else if (q.isEmpty)
           Text(
             '${store.vehicles.length} patentes. Escribe para encontrar la unidad.',

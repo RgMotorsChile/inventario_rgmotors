@@ -26,7 +26,9 @@ export function InstallAccess() {
     });
     setKind(next);
     setEmbedded(isInAppBrowser(ua));
-    if (next !== "standalone" && next !== "desktop" && !localStorage.getItem(INSTALL_HINT_KEY)) {
+    // En /login no abrimos el diálogo solo: tapaba el formulario en el celular.
+    const onLogin = window.location.pathname.startsWith("/login");
+    if (!onLogin && next !== "standalone" && next !== "desktop" && !localStorage.getItem(INSTALL_HINT_KEY)) {
       setOpen(true);
     }
 
@@ -34,7 +36,6 @@ export function InstallAccess() {
     window.addEventListener("rg:install-help", reopen);
 
     const onPrompt = (event: Event) => {
-      event.preventDefault();
       setAndroidPrompt(event as PromptEvent);
     };
     window.addEventListener("beforeinstallprompt", onPrompt);
@@ -88,30 +89,30 @@ export function InstallAccess() {
                 </p>
                 {embedded ? (
                   <p className="err">
-                    Estás en WhatsApp, Chrome u otra app. Tocá «Abrir en Safari» y repetí estos pasos ahí.
+                    Estás en WhatsApp, Chrome u otra app. Abre Safari y repite estos pasos ahí.
                   </p>
                 ) : null}
                 <ol className="install-steps">
                   <li>
-                    Tocá <strong>Compartir</strong>
+                    Toca <strong>Compartir</strong>
                     <ShareGlyph />
                     en la barra de Safari.
                   </li>
                   <li>
-                    Bajá y tocá <strong>Agregar a pantalla de inicio</strong>.
+                    Baja y toca <strong>Agregar a pantalla de inicio</strong>.
                   </li>
                   <li>
-                    Confirmá. El nombre será <strong>Inventario RG</strong>.
+                    Confirma. El nombre será <strong>Inventario RG</strong>.
                   </li>
                 </ol>
               </>
             ) : kind === "android" ? (
               <>
-                <p className="lead">Podés dejar el panel como una app, con el ícono de RG Motors.</p>
+                <p className="lead">Puedes dejar el panel como una app, con el ícono de RG Motors.</p>
                 <ol className="install-steps">
-                  <li>Tocá el menú de Chrome (tres puntos).</li>
+                  <li>Toca el menú de Chrome (tres puntos).</li>
                   <li>
-                    Elegí <strong>Instalar aplicación</strong> o <strong>Agregar a pantalla de inicio</strong>.
+                    Elige <strong>Instalar aplicación</strong> o <strong>Agregar a pantalla de inicio</strong>.
                   </li>
                 </ol>
                 {androidPrompt ? (

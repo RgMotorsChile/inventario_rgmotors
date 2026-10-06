@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../config.dart';
 import '../state/inventory_store.dart';
 import '../theme.dart';
+import '../widgets/app_update_gate.dart';
 import '../widgets/widgets.dart';
 import 'shell_screen.dart';
 
@@ -21,7 +22,7 @@ class RoleShell extends StatelessWidget {
     if (store.profile != null && !store.profile!.active) {
       return const PendingAccessScreen();
     }
-    return const ShellScreen();
+    return const AppUpdateGate(child: ShellScreen());
   }
 }
 

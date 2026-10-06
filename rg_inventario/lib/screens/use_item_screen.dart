@@ -46,9 +46,7 @@ class _UseItemScreenState extends State<UseItemScreen> {
     final store = context.watch<InventoryStore>();
     final item = sku == null ? null : store.itemBySku(sku!);
     final q = search.text.toLowerCase();
-    final units = store.vehicles.where((v) {
-      return '${v.plate} ${v.brand} ${v.model}'.toLowerCase().contains(q);
-    }).toList();
+    final units = store.vehicles.where((v) => v.matchesQuery(q)).toList();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Usar en unidad')),

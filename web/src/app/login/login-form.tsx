@@ -23,7 +23,7 @@ export function LoginForm({ initialError }: { initialError?: string }) {
   const [savedEmail, setSavedEmail] = useState("");
 
   useEffect(() => {
-    for (const href of ["/", "/inventario", "/unidades", "/personas", "/historial"]) {
+    for (const href of ["/", "/inventario", "/unidades", "/personas", "/historial", "/compras"]) {
       router.prefetch(href);
     }
     const email = window.localStorage.getItem(EMAIL_KEY);
@@ -46,22 +46,23 @@ export function LoginForm({ initialError }: { initialError?: string }) {
     const mail = String(form.get("email") ?? "").trim();
     if (keep && mail) window.localStorage.setItem(EMAIL_KEY, mail);
     else window.localStorage.removeItem(EMAIL_KEY);
-    window.location.assign("/");
+    window.location.assign(result.mustChange ? "/cambiar-clave" : "/");
   }
 
   return (
     <form onSubmit={onSubmit} aria-busy={busy}>
       <label>
-        Correo
+        Usuario o correo
         <input
           name="email"
-          type="email"
+          type="text"
           required
           autoComplete="username"
           autoFocus={!savedEmail}
           key={savedEmail || "email"}
           defaultValue={savedEmail}
           disabled={busy}
+          placeholder="santiago"
         />
       </label>
       <label>

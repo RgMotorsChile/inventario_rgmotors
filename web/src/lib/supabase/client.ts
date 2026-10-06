@@ -26,13 +26,14 @@ export function createBrowserSupabase(): SupabaseClient {
  * No cae a la anon key: anon y authenticated no tienen SELECT de la tabla
  * completa en `vehicles` ni en `tenants`.
  */
-export function createServerSupabase(): SupabaseClient {
+export function createServerSupabase(headers?: Record<string, string>): SupabaseClient {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
   if (!key) {
     throw new Error("Falta SUPABASE_SERVICE_ROLE_KEY");
   }
   return createClient(SUPABASE_URL, key, {
     auth: { persistSession: false, autoRefreshToken: false },
+    ...(headers ? { global: { headers } } : {}),
   });
 }
 

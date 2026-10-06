@@ -1109,3 +1109,25 @@ input:focus, select:focus, textarea:focus {
 }
 
 
+
+/* Nombres largos de jefatura: que el ellipsis funcione dentro del menú lateral. */
+@media (min-width: 961px) {
+  .side-user { align-self: stretch; }
+}
+
+/* Menú móvil: las 6 secciones en una sola fila, ícono arriba y texto abajo. */
+@media (max-width: 960px) {
+  .side nav { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 2px; }
+  .side a {
+    flex-direction: column;
+    gap: 3px;
+    padding: 6px 2px;
+    min-height: 50px;
+    font-size: 11px;
+    line-height: 1.1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .side a.active { box-shadow: var(--highlight); }
+}

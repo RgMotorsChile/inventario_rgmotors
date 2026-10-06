@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../state/inventory_store.dart';
+import '../widgets/correct_plate.dart';
 import '../widgets/widgets.dart';
 
 class MovementsScreen extends StatefulWidget {
@@ -53,9 +54,15 @@ class _MovementsScreenState extends State<MovementsScreen> {
                   leading: m.isUse && m.plate != null
                       ? PlateChip(plate: m.plate!)
                       : Icon(m.isAssign ? Icons.badge_outlined : Icons.south),
-                  trailing: StatusPill(
-                    status: m.isUse || m.isAssign ? 'uso' : 'in',
-                    label: '${m.isReturn || m.type == 'ingreso' ? '+' : '-'}${m.qty}',
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CorrectPlateAction(movement: m),
+                      StatusPill(
+                        status: m.isUse || m.isAssign ? 'uso' : 'in',
+                        label: '${m.isReturn || m.type == 'ingreso' ? '+' : '-'}${m.qty}',
+                      ),
+                    ],
                   ),
                 );
               },

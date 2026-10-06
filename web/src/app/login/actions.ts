@@ -9,9 +9,10 @@ import {
 import { useSupabaseAuth } from "@/lib/auth-mode";
 import { createSupabaseServer } from "@/lib/supabase/server";
 import { createServerSupabase } from "@/lib/supabase/client";
+import { mustChangePassword, resolveLoginEmail } from "@/lib/login-id";
 
 export type LoginError = "auth" | "inactive" | "forbidden";
-export type LoginResult = { error: LoginError | null };
+export type LoginResult = { error: LoginError | null; mustChange?: boolean };
 
 export async function login(formData: FormData): Promise<LoginResult> {
   if (!useSupabaseAuth()) return { error: "auth" };
@@ -19,10 +20,10 @@ export async function login(formData: FormData): Promise<LoginResult> {
   const jar = await cookies();
   const remember = String(formData.get("remember") ?? "") === "1";
   jar.set(REMEMBER_COOKIE, remember ? "1" : "0", rememberCookieOptions(remember));
-  const email = String(formData.get("email") ?? "").trim();
+  const email = resolveLoginEmail(String(formData.get("email") ?? ""));
   const password = String(formData.get("password") ?? "");
 
-  const sb = await createSupabaseServer();
+  const sb = await createSupabaseServer(remember ? "1" : "0");
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
   if (error || !data.user) return { error: "auth" };
 
@@ -39,6 +40,9 @@ export async function login(formData: FormData): Promise<LoginResult> {
   if (!["jefatura", "admin"].includes(String(profile.role))) {
     await sb.auth.signOut();
     return { error: "forbidden" };
+  }
+  if (mustChangePassword(data.user.user_metadata as Record<string, unknown>)) {
+    return { error: null, mustChange: true };
   }
   return { error: null };
 }

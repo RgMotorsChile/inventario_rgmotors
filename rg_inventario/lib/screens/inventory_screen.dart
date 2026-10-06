@@ -5,6 +5,7 @@ import '../models/models.dart';
 import '../state/inventory_store.dart';
 import '../theme.dart';
 import '../widgets/category_marks.dart';
+import '../widgets/correct_plate.dart';
 import '../widgets/widgets.dart';
 import 'assign_screen.dart';
 import 'inbound_screen.dart';
@@ -298,7 +299,13 @@ class ItemDetailScreen extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
                 title: Text(m.isUse ? 'En ${m.plate}' : (m.note ?? 'Ingreso')),
                 subtitle: Text(prettyWhen(m.createdAt)),
-                trailing: Text('${m.isUse || m.isAssign ? '-' : '+'}${m.qty}'),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CorrectPlateAction(movement: m),
+                    Text('${m.isUse || m.isAssign ? '-' : '+'}${m.qty}'),
+                  ],
+                ),
               )),
         ],
       ),

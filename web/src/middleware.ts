@@ -1,7 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { isPublicPath } from "@/lib/token";
+import { isApiPath, isPublicPath } from "@/lib/token";
+import { mustChangePassword } from "@/lib/login-id";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/client";
+import { REMEMBER_COOKIE, authCookieWriteOptions } from "@/lib/session";
 
 async function updateSupabaseSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -15,8 +17,9 @@ async function updateSupabaseSession(request: NextRequest) {
           request.cookies.set(name, value);
         }
         response = NextResponse.next({ request });
+        const remember = request.cookies.get(REMEMBER_COOKIE)?.value;
         for (const { name, value, options } of cookiesToSet) {
-          response.cookies.set(name, value, options);
+          response.cookies.set(name, value, authCookieWriteOptions(value, options, remember));
         }
       },
     },
@@ -26,9 +29,16 @@ async function updateSupabaseSession(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isPublic = isPublicPath(path);
 
-  if (!data.user && !isPublic) {
+  if (!data.user && !isPublic && !isApiPath(path)) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  const forceChange = mustChangePassword(data.user?.user_metadata as Record<string, unknown> | undefined);
+  if (data.user && forceChange && path !== "/cambiar-clave" && !isApiPath(path)) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/cambiar-clave";
     return NextResponse.redirect(url);
   }
 
