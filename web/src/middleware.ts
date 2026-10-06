@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isApiPath, isPublicPath } from "@/lib/token";
 import { mustChangePassword } from "@/lib/login-id";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/client";
+import { REMEMBER_COOKIE, authCookieWriteOptions } from "@/lib/session";
 
 async function updateSupabaseSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -16,8 +17,9 @@ async function updateSupabaseSession(request: NextRequest) {
           request.cookies.set(name, value);
         }
         response = NextResponse.next({ request });
+        const remember = request.cookies.get(REMEMBER_COOKIE)?.value;
         for (const { name, value, options } of cookiesToSet) {
-          response.cookies.set(name, value, options);
+          response.cookies.set(name, value, authCookieWriteOptions(value, options, remember));
         }
       },
     },

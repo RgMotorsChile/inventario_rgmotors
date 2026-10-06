@@ -2,7 +2,6 @@ import { LiveKpis, LiveStockTable } from "@/components/live-inventory";
 import { PageHead } from "@/components/page-head";
 import { RpcForm } from "@/components/rpc-form";
 import { requireManagement } from "@/lib/auth";
-import { clp } from "@/lib/format";
 import type { AssignmentRow, ItemRow } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -43,13 +42,13 @@ export default async function InventarioPage() {
           fn="upsert_item"
           submit="Guardar elemento"
           fields={[
-            { name: "p_sku", label: "Código interno", required: true, placeholder: "BAR-HILUX" },
+            { name: "p_sku", label: "Código interno", required: true, placeholder: "BAR-HILUX", uppercase: true },
             { name: "p_name", label: "Nombre", required: true },
             { name: "p_category", label: "Categoría", required: true },
             { name: "p_brand", label: "Marca", required: true },
-            { name: "p_min_stock", label: "Mínimo", type: "number", required: true },
+            { name: "p_min_stock", label: "Mínimo", type: "number", required: true, min: 0, step: 1 },
             { name: "p_location", label: "Ubicación", required: true },
-            { name: "p_unit_cost", label: "Costo", type: "number", required: true },
+            { name: "p_unit_cost", label: "Costo", type: "number", required: true, min: 0, step: "any" },
             { name: "p_compatible", label: "Compatible" },
           ]}
         />
@@ -60,37 +59,11 @@ export default async function InventarioPage() {
           fn="adjust_stock"
           submit="Aplicar ajuste"
           fields={[
-            { name: "p_sku", label: "Código interno", required: true },
-            { name: "p_qty", label: "Cantidad (+ o −)", type: "number", required: true },
+            { name: "p_sku", label: "Código interno", required: true, uppercase: true },
+            { name: "p_qty", label: "Cantidad (+ o −)", type: "number", required: true, step: 1 },
             { name: "p_note", label: "Motivo", required: true },
           ]}
         />
-      </div>
-      <div className="card">
-        <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Código</th>
-              <th>Nombre</th>
-              <th>Stock</th>
-              <th>Costo</th>
-              <th>Ubicación</th>
-            </tr>
-          </thead>
-          <tbody>
-            {stock.map((i) => (
-              <tr key={i.sku}>
-                <td>{i.sku}</td>
-                <td>{i.name}</td>
-                <td>{i.stock}</td>
-                <td>{clp.format(Number(i.unit_cost))}</td>
-                <td>{i.location}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        </div>
       </div>
     </>
   );

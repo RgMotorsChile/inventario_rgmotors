@@ -76,10 +76,10 @@ export default async function UnidadesPage() {
             fn="upsert_vehicle"
             submit="Guardar unidad"
             fields={[
-              { name: "p_plate", label: "Patente", required: true, placeholder: "THZF 75" },
+              { name: "p_plate", label: "Patente", required: true, placeholder: "THZF 75", uppercase: true },
               { name: "p_brand", label: "Marca", required: true },
               { name: "p_model", label: "Modelo", required: true },
-              { name: "p_year", label: "Año", type: "number", required: true },
+              { name: "p_year", label: "Año", type: "number", required: true, min: 1950, max: new Date().getFullYear() + 1, step: 1 },
               { name: "p_color", label: "Color", required: true },
               { name: "p_status", label: "Estado", placeholder: "Disponible" },
             ]}

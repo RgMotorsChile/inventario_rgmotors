@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { callRpc } from "@/lib/call-rpc";
+import { OFFLINE_MESSAGE, SESSION_MESSAGE, callRpc } from "@/lib/call-rpc";
 import type { WorkerRow } from "@/lib/types";
 
 type Dialog =
@@ -55,6 +55,11 @@ export function WorkerDesk({ workers }: { workers: WorkerRow[] }) {
     setError(null);
     setOk(null);
     const { data, error: rpcError } = await callRpc("delete_worker", { p_id: dialog.worker.id });
+    if (rpcError && (rpcError.message === OFFLINE_MESSAGE || rpcError.message === SESSION_MESSAGE)) {
+      setBusy(false);
+      setError(rpcError.message);
+      return;
+    }
     if (rpcError) {
       const { error: fallbackError } = await callRpc("upsert_worker", {
         p_id: dialog.worker.id,
@@ -74,12 +79,9 @@ export function WorkerDesk({ workers }: { workers: WorkerRow[] }) {
     }
     setBusy(false);
     const result = (data ?? {}) as { deleted?: boolean; deactivated?: boolean; name?: string };
+    const name = result.name ?? dialog.worker.full_name;
     setDialog(null);
-    setOk(
-      result.deleted
-        ? `${result.name ?? "Trabajador"} fue eliminado.`
-        : `${result.name ?? "Trabajador"} quedó de baja. El historial se conserva.`,
-    );
+    setOk(result.deactivated ? `${name} quedó de baja. El historial se conserva.` : `${name} fue eliminado.`);
     router.refresh();
   }
 
@@ -87,6 +89,7 @@ export function WorkerDesk({ workers }: { workers: WorkerRow[] }) {
     <>
       {ok ? <p className="ok">{ok}</p> : null}
       {error && !dialog ? <p className="err">{error}</p> : null}
+      <div className="table-wrap">
       <table>
         <thead>
           <tr>
@@ -118,6 +121,7 @@ export function WorkerDesk({ workers }: { workers: WorkerRow[] }) {
           ))}
         </tbody>
       </table>
+      </div>
 
       {dialog ? (
         <div className="dialog-back" onClick={() => (!busy ? setDialog(null) : undefined)}>

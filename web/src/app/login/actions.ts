@@ -23,7 +23,7 @@ export async function login(formData: FormData): Promise<LoginResult> {
   const email = resolveLoginEmail(String(formData.get("email") ?? ""));
   const password = String(formData.get("password") ?? "");
 
-  const sb = await createSupabaseServer();
+  const sb = await createSupabaseServer(remember ? "1" : "0");
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
   if (error || !data.user) return { error: "auth" };
 

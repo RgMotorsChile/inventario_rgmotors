@@ -26,7 +26,9 @@ export function InstallAccess() {
     });
     setKind(next);
     setEmbedded(isInAppBrowser(ua));
-    if (next !== "standalone" && next !== "desktop" && !localStorage.getItem(INSTALL_HINT_KEY)) {
+    // En /login no abrimos el diálogo solo: tapaba el formulario en el celular.
+    const onLogin = window.location.pathname.startsWith("/login");
+    if (!onLogin && next !== "standalone" && next !== "desktop" && !localStorage.getItem(INSTALL_HINT_KEY)) {
       setOpen(true);
     }
 
