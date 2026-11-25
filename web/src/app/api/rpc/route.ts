@@ -4,10 +4,15 @@ import { requireStaffFromRequest } from "@/lib/bodegaAuth";
 import { createServerSupabase } from "@/lib/supabase/client";
 import { useSupabaseInventory } from "@/lib/db";
 import { actorHeaders, authorizeRpc, parseRpcBody } from "@/lib/rpc-policy";
+import { getInventarioSuspension } from "@/lib/suspension";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
+  const suspension = await getInventarioSuspension();
+  if (suspension.suspended) {
+    return NextResponse.json({ error: suspension.message }, { status: 503 });
+  }
   if (!useSupabaseInventory()) {
     return NextResponse.json(
       { error: "Inventario Supabase no configurado" },

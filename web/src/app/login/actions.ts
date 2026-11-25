@@ -10,11 +10,14 @@ import { useSupabaseAuth } from "@/lib/auth-mode";
 import { createSupabaseServer } from "@/lib/supabase/server";
 import { createServerSupabase } from "@/lib/supabase/client";
 import { mustChangePassword, resolveLoginEmail } from "@/lib/login-id";
+import { getInventarioSuspension } from "@/lib/suspension";
 
-export type LoginError = "auth" | "inactive" | "forbidden";
+export type LoginError = "auth" | "inactive" | "forbidden" | "suspended";
 export type LoginResult = { error: LoginError | null; mustChange?: boolean };
 
 export async function login(formData: FormData): Promise<LoginResult> {
+  const suspension = await getInventarioSuspension();
+  if (suspension.suspended) return { error: "suspended" };
   if (!useSupabaseAuth()) return { error: "auth" };
 
   const jar = await cookies();

@@ -8,6 +8,7 @@ const copy: Record<LoginError, string> = {
   forbidden: "Esta web es solo para jefatura. Bodega entra por la app móvil.",
   auth: "Correo o contraseña incorrectos.",
   inactive: "Tu cuenta no está activa.",
+  suspended: "Servicio suspendido temporalmente.",
 };
 
 const EMAIL_KEY = "rg.remember.email";

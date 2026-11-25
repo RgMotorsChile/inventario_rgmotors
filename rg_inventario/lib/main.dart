@@ -9,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config.dart';
 import 'screens/access_gate.dart';
 import 'screens/login_screen.dart';
+import 'services/suspension.dart';
 import 'state/inventory_store.dart';
 import 'theme.dart';
 
@@ -56,17 +57,50 @@ class RgInventarioApp extends StatelessWidget {
   }
 }
 
-class AuthGate extends StatelessWidget {
+class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
 
   @override
+  State<AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<AuthGate> {
+  late Future<AppSuspensionStatus> _status = loadAppSuspensionStatus();
+  bool _retrying = false;
+
+  Future<void> _recheck() async {
+    setState(() {
+      _retrying = true;
+      _status = loadAppSuspensionStatus();
+    });
+    await _status;
+    if (mounted) setState(() => _retrying = false);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return StreamBuilder<AuthState>(
-      stream: Supabase.instance.client.auth.onAuthStateChange,
-      builder: (context, snapshot) {
-        final user = Supabase.instance.client.auth.currentUser;
-        if (user == null) return const LoginScreen();
-        return _AuthenticatedScope(userId: user.id);
+    return FutureBuilder<AppSuspensionStatus>(
+      future: _status,
+      builder: (context, statusSnap) {
+        if (statusSnap.connectionState != ConnectionState.done) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+        final status = statusSnap.data ?? AppSuspensionStatus.active;
+        if (status.suspended) {
+          return SuspendedScreen(
+            message: status.message,
+            onRetry: _recheck,
+            busy: _retrying,
+          );
+        }
+        return StreamBuilder<AuthState>(
+          stream: Supabase.instance.client.auth.onAuthStateChange,
+          builder: (context, snapshot) {
+            final user = Supabase.instance.client.auth.currentUser;
+            if (user == null) return const LoginScreen();
+            return _AuthenticatedScope(userId: user.id);
+          },
+        );
       },
     );
   }

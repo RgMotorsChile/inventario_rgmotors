@@ -6,6 +6,7 @@ import { useSupabaseAuth } from "@/lib/auth-mode";
 import { createSupabaseServer } from "@/lib/supabase/server";
 import { createServerSupabase } from "@/lib/supabase/client";
 import { mustChangePassword } from "@/lib/login-id";
+import { getInventarioSuspension } from "@/lib/suspension";
 
 export type Profile = {
   id: string;
@@ -24,7 +25,7 @@ async function loadProfileSupabase(userId: string): Promise<Profile | null> {
   return (data as Profile | null) ?? null;
 }
 
-type AuthFail = { ok: false; reason: "auth" | "unauth" | "forbidden" | "password" };
+type AuthFail = { ok: false; reason: "auth" | "unauth" | "forbidden" | "password" | "suspended"; message?: string };
 type AuthOk = {
   ok: true;
   db: InventoryDb;
@@ -36,6 +37,10 @@ type AuthOk = {
 };
 
 const loadManagementSession = cache(async (): Promise<AuthOk | AuthFail> => {
+  const suspension = await getInventarioSuspension();
+  if (suspension.suspended) {
+    return { ok: false, reason: "suspended", message: suspension.message };
+  }
   if (!useSupabaseAuth()) {
     return { ok: false, reason: "auth" };
   }
@@ -83,6 +88,7 @@ const loadManagementSession = cache(async (): Promise<AuthOk | AuthFail> => {
 export const requireManagement = cache(async () => {
   const session = await loadManagementSession();
   if (!session.ok) {
+    if (session.reason === "suspended") redirect("/login");
     if (session.reason === "password") redirect("/cambiar-clave");
     if (session.reason === "forbidden") redirect("/login?error=forbidden");
     if (session.reason === "auth") redirect("/login?error=auth");
@@ -96,6 +102,15 @@ export const requireManagement = cache(async () => {
 export async function requireManagementApi() {
   const session = await loadManagementSession();
   if (!session.ok) {
+    if (session.reason === "suspended") {
+      return {
+        ok: false as const,
+        response: NextResponse.json(
+          { error: session.message || "Servicio suspendido temporalmente." },
+          { status: 503 },
+        ),
+      };
+    }
     const error =
       session.reason === "password"
         ? "Debes cambiar la contraseña antes de continuar."

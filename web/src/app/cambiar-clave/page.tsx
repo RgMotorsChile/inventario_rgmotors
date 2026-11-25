@@ -1,9 +1,14 @@
 import { redirect } from "next/navigation";
 import { BrandLogo } from "@/components/brand-logo";
 import { createSupabaseServer } from "@/lib/supabase/server";
+import { getInventarioSuspension } from "@/lib/suspension";
+
+export const dynamic = "force-dynamic";
 import { ChangePasswordForm } from "./form";
 
 export default async function ChangePasswordPage() {
+  const suspension = await getInventarioSuspension();
+  if (suspension.suspended) redirect("/login");
   const sb = await createSupabaseServer();
   const { data } = await sb.auth.getUser();
   if (!data.user) redirect("/login");
