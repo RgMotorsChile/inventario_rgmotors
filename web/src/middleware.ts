@@ -4,6 +4,7 @@ import { isApiPath, isPublicPath } from "@/lib/token";
 import { mustChangePassword } from "@/lib/login-id";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/client";
 import { REMEMBER_COOKIE, authCookieWriteOptions } from "@/lib/session";
+import { getInventarioSuspension } from "@/lib/suspension";
 
 async function updateSupabaseSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -46,6 +47,21 @@ async function updateSupabaseSession(request: NextRequest) {
 }
 
 export async function middleware(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+  const suspension = await getInventarioSuspension();
+  if (suspension.suspended) {
+    if (isApiPath(path)) {
+      return NextResponse.json({ error: suspension.message }, { status: 503 });
+    }
+    if (path !== "/login") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next({ request });
+  }
+
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     return NextResponse.next({ request });
   }

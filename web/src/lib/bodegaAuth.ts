@@ -3,6 +3,7 @@ import { createServerSupabase, SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/sup
 import { RG_MOTORS_TENANT_ID, useSupabaseInventory } from "@/lib/db";
 import { useSupabaseAuth } from "@/lib/auth-mode";
 import type { Profile } from "@/lib/auth";
+import { getInventarioSuspension } from "@/lib/suspension";
 
 export type StaffContext = {
   userId: string;
@@ -13,6 +14,10 @@ export type StaffContext = {
 export async function requireStaffFromRequest(
   req: Request,
 ): Promise<StaffContext | { error: string; status: number }> {
+  const suspension = await getInventarioSuspension();
+  if (suspension.suspended) {
+    return { error: suspension.message, status: 503 };
+  }
   if (!useSupabaseAuth()) {
     return { error: "Auth Supabase no configurado", status: 500 };
   }

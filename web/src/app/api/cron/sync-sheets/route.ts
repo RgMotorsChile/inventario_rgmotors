@@ -2,12 +2,17 @@ import { NextResponse } from "next/server";
 import { useSupabaseInventory } from "@/lib/db";
 import { syncComprasNow, syncPatioNow } from "@/lib/sync-stock";
 import { cronAllowed } from "@/lib/cron-auth";
+import { getInventarioSuspension } from "@/lib/suspension";
 
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 
 
 export async function GET(req: Request) {
+  const suspension = await getInventarioSuspension();
+  if (suspension.suspended) {
+    return NextResponse.json({ error: suspension.message }, { status: 503 });
+  }
   if (!cronAllowed(req)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }

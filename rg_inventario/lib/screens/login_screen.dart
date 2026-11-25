@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config.dart';
 import '../services/errors.dart';
 import '../services/session.dart';
+import '../services/suspension.dart';
 import '../theme.dart';
 import '../widgets/widgets.dart';
 
@@ -74,6 +75,11 @@ class _LoginScreenState extends State<LoginScreen> {
       error = null;
     });
     try {
+      final status = await loadAppSuspensionStatus();
+      if (status.suspended) {
+        if (mounted) setState(() => error = status.message);
+        return;
+      }
       await saveSessionPreference(remember: remember, email: email.text);
       await _submitSupabase();
     } catch (e) {

@@ -2,11 +2,14 @@
 
 import { createSupabaseServer } from "@/lib/supabase/server";
 import { mustChangePassword } from "@/lib/login-id";
+import { getInventarioSuspension } from "@/lib/suspension";
 
 export type ChangePasswordError = "auth" | "short" | "mismatch" | "same" | "update";
 export type ChangePasswordResult = { error: ChangePasswordError | null };
 
 export async function changePassword(formData: FormData): Promise<ChangePasswordResult> {
+  const suspension = await getInventarioSuspension();
+  if (suspension.suspended) return { error: "auth" };
   const next = String(formData.get("password") ?? "");
   const confirm = String(formData.get("confirm") ?? "");
   const current = String(formData.get("current") ?? "");
